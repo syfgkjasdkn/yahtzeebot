@@ -1,0 +1,35 @@
+#! /usr/bin/env bash
+
+set +e
+
+# builds the otp app release in a docker container running ubuntu
+# the tarred release is then copied from the container to `export` dir
+# thus making the release available for later use outside of the container
+_build() {
+  docker build . \
+    --build-arg TG_API_ID=${TG_API_ID} \
+    --build-arg TG_API_HASH=${TG_API_HASH} \
+    --build-arg TG_PHONE_NUMBER=${TG_PHONE_NUMBER} \
+    -t yahtzeebot \
+    -f docker/ubuntu/release/Dockerfile && \
+  docker run -v "$(pwd)"/export:/export --rm yahtzeebot
+}
+
+_upload() {
+  if [ -z "$REMOTE_HOST" ] ; then
+    echo "Need REMOTE_HOST to be set"
+    exit 1
+  fi
+
+  if [ "$CI" = "true" ] ; then
+    # TODO StrictHostKeyChecking=yes
+    scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no releases/releases/0.1.0/yahtzeebot.tar.gz yahtzeebot@${REMOTE_HOST}:~/yahtzeebot
+  else
+    scp -i ~/.ssh/sas releases/releases/0.1.0/yahtzeebot.tar.gz yahtzeebot@${REMOTE_HOST}:~/yahtzeebot
+  fi
+}
+
+case $1 in
+  build ) _build ;;
+  upload ) _upload ;;
+esac

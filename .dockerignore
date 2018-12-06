@@ -1,0 +1,8 @@
+./**/node_modules
+_build
+export
+apps/web/priv/static
+deps
+.elixir_ls
+vagrant
+releases
