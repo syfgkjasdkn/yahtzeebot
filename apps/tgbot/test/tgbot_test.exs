@@ -115,7 +115,8 @@ defmodule TGBotTest do
                       opts: []}
     end
 
-    test "when no bot funds left"
+    # TODO
+    # test "when no bot funds left"
   end
 
   test "set_webhook" do
