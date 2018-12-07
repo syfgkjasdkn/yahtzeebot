@@ -150,10 +150,10 @@ defmodule CoreTest do
       # TODO use seeds to predetermine the roll outcome
       Enum.each(1..10000, fn _ ->
         case Core.roll(tipper_id) do
-          {:ok, {:win, :"200", _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
+          {:ok, {:win, :large_straight, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
             assert_receive {:reward, address: ^winner_address, amount: 200}
 
-          {:ok, {:win, :"400", _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
+          {:ok, {:win, :four_of_kind, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
             assert_receive {:reward, address: ^winner_address, amount: 400}
 
           {:ok, {:win, :pool, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->

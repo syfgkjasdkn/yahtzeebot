@@ -31,15 +31,15 @@ defmodule Core do
           | {:error, :no_rolls}
   def roll(telegram_id) do
     case Core.Session.roll(telegram_id) do
-      {:ok, {:win, reward, _dice} = outcome} when reward in [:"200", :"400"] ->
+      {:ok, {:win, reward, _dice} = outcome} when reward in [:large_straight, :four_of_kind] ->
         # TODO
         {:ok, txid} = try_reward(reward_to_trx(reward), Core.Session.seedit_address(telegram_id))
         {:ok, outcome, txid}
 
       {:ok, {:win, :pool, _dice} = outcome} ->
         pool_size = pool_size()
-        reward = round(pool_size * 0.8)
-        to_owners = round((pool_size - reward) * 0.5)
+        reward = :erlang.floor(pool_size * winning_player_pct())
+        to_owners = :erlang.floor(pool_size * house_pct())
 
         try_reward(to_owners, owners_address!())
         # TODO
@@ -51,8 +51,8 @@ defmodule Core do
     end
   end
 
-  defp reward_to_trx(:"200"), do: 200
-  defp reward_to_trx(:"400"), do: 400
+  defp reward_to_trx(:large_straight), do: reward_for_large_straight()
+  defp reward_to_trx(:four_of_kind), do: reward_for_four_of_kind()
 
   @spec pool_size :: integer
   def pool_size do
@@ -89,6 +89,35 @@ defmodule Core do
   def current_node! do
     Application.get_env(:core, :tron_grpc_node_address) ||
       raise("need core.tron_grpc_node_address to be set")
+  end
+
+  @spec winning_player_pct :: float
+  def winning_player_pct do
+    Application.get_env(:core, :winning_player_pct) ||
+      raise("need core.winning_player_pct to be set")
+  end
+
+  @spec house_pct :: float
+  def house_pct do
+    Application.get_env(:core, :house_pct) || raise("need core.house_pct to be set")
+  end
+
+  @spec rolls_to_trx_ratio :: {rolls :: pos_integer, trx :: pos_integer}
+  def rolls_to_trx_ratio do
+    Application.get_env(:core, :rolls_to_trx_ratio) ||
+      raise("need core.rolls_to_trx_ratio to be set")
+  end
+
+  @spec reward_for_large_straight :: trx :: pos_integer
+  def reward_for_four_of_kind do
+    Application.get_env(:core, :reward_for_four_of_kind) ||
+      raise("need core.reward_for_four_of_kind to be set")
+  end
+
+  @spec reward_for_large_straight :: trx :: pos_integer
+  def reward_for_large_straight do
+    Application.get_env(:core, :reward_for_large_straight) ||
+      raise("need core.reward_for_large_straight to be set")
   end
 
   def ensure_our_address!(%Tron.TransferContract{to_address: to_address}) do

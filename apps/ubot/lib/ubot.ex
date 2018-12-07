@@ -169,10 +169,12 @@ defmodule UBot do
         """)
 
       {:error, :invalid_contract} ->
-        TGBot.adapter().send_message(chat_id, """
-        🚨 The bot only accepts 100 TRX tips.
+        {rolls, trx} = Core.rolls_to_trx_ratio()
 
-        Try /tip 100 to get 3 rolls
+        TGBot.adapter().send_message(chat_id, """
+        🚨 The bot only accepts #{trx} TRX tips.
+
+        Try /tip #{trx} to get #{rolls} rolls
         """)
 
       {:error, :no_transfer} ->

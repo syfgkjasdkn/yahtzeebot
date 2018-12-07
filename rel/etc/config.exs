@@ -5,8 +5,23 @@ env! = fn var, type ->
 
   try do
     case type do
-      :string -> val
-      :integer -> String.to_integer(val)
+      :string ->
+        val
+
+      :integer ->
+        String.to_integer(val)
+
+      :float ->
+        case Float.parse(val) do
+          {val, ""} -> val
+          _ -> raise(ArgumentError)
+        end
+
+      :ratio ->
+        case :binary.split(val, "/") do
+          [rolls, trx] -> {String.to_integer(rolls), String.to_integer(trx)}
+          _ -> raise(ArgumentError)
+        end
     end
   rescue
     _error ->
@@ -19,7 +34,12 @@ config :core,
   address: env!.("BOT_TRON_ADDRESS", :string),
   owners_address: env!.("OWNERS_ADDRESS", :string),
   privkey: env!.("REWARDER_PRIVKEY", :string),
-  tron_grpc_node_address: env!.("TRON_GRPC_NODE_ADDRESS", :string)
+  tron_grpc_node_address: env!.("TRON_GRPC_NODE_ADDRESS", :string),
+  winning_player_pct: env!.("WINNING_PLAYER_PCT", :float),
+  house_pct: env!.("HOUSE_PCT", :float),
+  rolls_to_trx_ratio: env!.("ROLLS_TO_TRX_RATIO", :ratio),
+  reward_for_four_of_kind: env!.("REWARD_FOR_FOUR_OF_KIND", :integer),
+  reward_for_large_straight: env!.("REWARD_FOR_LARGE_STRAIGHT", :integer)
 
 config :web, port: env!.("WEB_PORT", :integer)
 

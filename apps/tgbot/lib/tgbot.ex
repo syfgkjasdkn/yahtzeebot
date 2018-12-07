@@ -83,10 +83,12 @@ defmodule TGBot do
         """)
 
       {:error, :no_rolls} ->
+        {rolls, trx} = Core.rolls_to_trx_ratio()
+
         @adapter.send_message(chat_id, """
         @#{username} you don't have any rolls left.
 
-        Please /tip 100 the bot to get 3 rolls.
+        Please /tip #{trx} the bot to get #{rolls} rolls.
         """)
 
       # TODO test
@@ -126,8 +128,8 @@ defmodule TGBot do
   end
 
   defp render_reward(:extra_roll), do: "extra roll"
-  defp render_reward(:"200"), do: "200 TRX"
-  defp render_reward(:"400"), do: "400 TRX"
+  defp render_reward(:large_straight), do: "#{Core.reward_for_large_straight()} TRX"
+  defp render_reward(:four_of_kind), do: "#{Core.reward_for_four_of_kind()} TRX"
   defp render_reward(:pool), do: "the pool"
 
   @doc false
