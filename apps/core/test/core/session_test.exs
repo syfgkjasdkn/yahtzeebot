@@ -74,7 +74,7 @@ defmodule Core.SessionTest do
 
       case outcome do
         {:win, reward, dice} when is_list(dice) ->
-          assert reward in [:extra_roll, :"200", :"400", :pool]
+          assert reward in [:extra_roll, :large_straight, :four_of_kind, :pool]
           assert length(dice) == 5
 
         {:lose, dice} when is_list(dice) ->
