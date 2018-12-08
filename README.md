@@ -8,6 +8,8 @@
 
 This would produce an archive with all the necessary dependencies. Note that for compiling `tdlib` and `libsecp256k1` you need to install the required libs. Also note that `tdlib` takes about 10 minutes and ~7GB of RAM to compile on my laptop. These libraries need to be compiled on the same OS+arch as that of the target machine (where the bot would eventually run).
 
+There is a prebuilt `tdlib` for ubuntu 18.04 in `dirty-hack/`. It's being used in the CI.
+
 ---
 
 ### Deploy
