@@ -120,13 +120,14 @@ defmodule TGBotTest do
 
   describe "/roll" do
     test "when have rolls" do
-      telegram_id = 105
+      telegram_id = 10543
 
+      assert :ok = Core.Session.set_seedit_address(telegram_id, :crypto.strong_rand_bytes(21))
       assert 3 = Core.Session.add_rolls(telegram_id, 3)
 
       send_public_message(telegram_id, "/roll")
 
-      assert_receive {:message, telegram_id: 105, text: text, opts: _opts}
+      assert_receive {:message, telegram_id: ^telegram_id, text: text, opts: _opts}
       assert String.contains?(text, ["@durov rolled"])
     end
 
