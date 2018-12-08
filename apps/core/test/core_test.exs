@@ -117,6 +117,23 @@ defmodule CoreTest do
     end
   end
 
+  describe "admins" do
+    test "admin?/1" do
+      # these come form the initial config
+      assert Core.admin?(666)
+      assert Core.admin?(777)
+
+      refute Core.admin?(123)
+
+      # add 123 as an admin
+      :ok = Application.put_env(:core, :admin_ids, [666, 777, 123])
+
+      assert Core.admin?(666)
+      assert Core.admin?(777)
+      assert Core.admin?(123)
+    end
+  end
+
   describe "roll" do
     test "decreases roll count" do
       tipper_id = 12335

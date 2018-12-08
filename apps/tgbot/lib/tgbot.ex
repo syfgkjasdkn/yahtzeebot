@@ -32,12 +32,12 @@ defmodule TGBot do
     """)
   end
 
-  # TODO test
   defp handle_public_text("/init" <> _maybe_bot_name, %{
          "chat" => %{"id" => chat_id},
          "from" => %{"id" => from_id}
        }) do
     if Core.admin?(from_id) do
+      # TODO move this config to :core
       :ok = Application.put_env(:ubot, :tracked_chat_ids, [chat_id])
 
       @adapter.send_message(chat_id, """

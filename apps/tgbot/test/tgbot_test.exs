@@ -25,6 +25,34 @@ defmodule TGBotTest do
     refute_receive _anything
   end
 
+  describe "/init" do
+    test "by admin" do
+      # this is one of the admins in the test config
+      telegram_id = 666
+
+      send_public_message(telegram_id, "/init", chat_id: -123_475)
+
+      assert_receive {:message,
+                      telegram_id: -123_475,
+                      text: """
+                      Initialized the bot for chat id -123475.
+                      """,
+                      opts: []}
+
+      assert [-123_475] == Application.get_env(:ubot, :tracked_chat_ids)
+    end
+
+    test "by stranger" do
+      telegram_id = 1_236_578
+
+      send_public_message(telegram_id, "/init", chat_id: -123_876_032)
+
+      refute_receive _anything
+
+      assert [] == Application.get_env(:ubot, :tracked_chat_ids)
+    end
+  end
+
   test "/pool" do
     telegram_id = 101_234
     assert :ok = Storage.change_pool_size(+10000)
@@ -136,11 +164,11 @@ defmodule TGBotTest do
     })
   end
 
-  defp send_public_message(telegram_id, text) do
+  defp send_public_message(telegram_id, text, opts \\ []) do
     TGBot.handle(%{
       "message" => %{
         "from" => %{"id" => telegram_id, "username" => "durov"},
-        "chat" => %{"id" => telegram_id, "type" => "supergroup"},
+        "chat" => %{"id" => opts[:chat_id] || telegram_id, "type" => "supergroup"},
         "text" => text
       }
     })
