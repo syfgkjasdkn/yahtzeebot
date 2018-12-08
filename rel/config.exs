@@ -55,4 +55,10 @@ release :yahtzeebot do
       web: :permanent
     ]
   )
+
+  set(
+    commands: [
+      remsh: "rel/commands/remsh"
+    ]
+  )
 end

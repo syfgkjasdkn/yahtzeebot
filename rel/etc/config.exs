@@ -33,7 +33,7 @@ env! = fn var, type ->
     end
   rescue
     _error ->
-      raise(ArgumentError, "couldn't parse #{val} as #{type}")
+      raise(ArgumentError, "couldn't parse #{inspect(val)} as #{type}")
   end
 end
 
@@ -57,6 +57,8 @@ config :nadia, token: env!.("TG_BOT_TOKEN", :string)
 config :ubot,
   api_id: env!.("TG_API_ID", :string),
   api_hash: env!.("TG_API_HASH", :string),
-  phone_number: env!.("TG_PHONE_NUMBER", :stirng)
+  phone_number: env!.("TG_PHONE_NUMBER", :string),
+  tdlib_database_directory: env!.("TDLIB_DB_DIR", :string)
 
+# TODO doesn't work dua to tdlib compiling the path, not reading it at runtime
 config :tdlib, backend_binary: env!.("TDLIB_PATH", :string)

@@ -9,7 +9,7 @@ StandardError=journal
 Restart=on-failure
 RestartSec=5
 Environment=WEB_PORT=5001
-# change these two addresses
+# change these three addresses
 Environment=BOT_TRON_ADDRESS=put_your_bots_seedit_address_base58check_encoded_here
 Environment=REWARDER_PRIVKEY=put_your_base16_encoded_privkey_here
 Environment=OWNERS_ADDRESS=... # where to send $HOUSE_PCT of the pool
@@ -22,7 +22,10 @@ Environment=ADMIN_IDS=...
 # https://github.com/tronprotocol/Documentation/blob/master/TRX/Official_Public_Node.md
 Environment=GRPC_NODES=35.180.51.163:50051,34.253.187.192:50051,47.74.33.41:50051
 Environment=DB_PATH=/home/yahtzeebot/yahtzeebot/db.sqlite
+# TODO also change ubot/config/prod.exs (problem with the lib)
 Environment=TDLIB_PATH=/home/yahtzeebot/yahtzeebot/priv/tdlib-json-cli
+# make sure different session use different dbs
+Environment=TDLIB_DB_DIR=/tmp/tdlib
 # change TG_* ones
 Environment=TG_BOT_TOKEN=get_this_from_botfather
 Environment=TG_API_ID=asdfasdf # get it from my.telegram.org/apps
