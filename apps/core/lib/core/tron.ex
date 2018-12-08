@@ -3,9 +3,6 @@ defmodule Core.Tron do
   Some helper functions to interact with TRON
   """
 
-  # TODO pick a node from tronscan on node disconnect
-  # and connect to it
-
   require Logger
   require Record
   Record.defrecordp(:state, [:channel, :privkey])
@@ -33,8 +30,7 @@ defmodule Core.Tron do
     privkey = opts[:privkey] || raise("need :privkey")
 
     # check here so that it doesn't fail in handle_info
-    Application.get_env(:core, :tron_grpc_node_address) ||
-      raise("need core.tron_grpc_node_address")
+    Application.get_env(:core, :grpc_nodes) || raise("need core.grpc_nodes")
 
     send(self(), :connect)
     {:ok, state(privkey: privkey)}
@@ -228,10 +224,8 @@ defmodule Core.Tron do
 
   @spec handle_info(:connect, state) :: {:noreply, state}
   def handle_info(:connect, state) do
-    node_address =
-      Application.get_env(:core, :tron_grpc_node_address) || raise("need :tron_grpc_node_address")
-
-    {:ok, channel} = GRPC.Stub.connect(node_address)
+    nodes = Application.get_env(:core, :grpc_nodes) || raise("need core.grpc_nodes")
+    {:ok, channel} = try_connect(nodes)
     {:noreply, state(state, channel: channel)}
   end
 
@@ -242,5 +236,16 @@ defmodule Core.Tron do
 
   def handle_info({:gun_up, _pid, :http2}, state) do
     {:noreply, state}
+  end
+
+  defp try_connect([node_address | rest]) do
+    case GRPC.Stub.connect(node_address) do
+      {:ok, _channel} = success ->
+        success
+
+      failure ->
+        Logger.error("failied to connect to #{node_address}:\n\n#{inspect(failure)}")
+        try_connect(rest)
+    end
   end
 end

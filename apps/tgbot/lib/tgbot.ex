@@ -32,17 +32,19 @@ defmodule TGBot do
     """)
   end
 
-  # TODO need it?
-  # defp handle_public_text("/init" <> _maybe_bot_name, %{
-  #        "chat" => %{"id" => chat_id},
-  #        "from" => %{"id" => user_id}
-  #      }) when user_id in admin_ids() do
-  #   :ok = Application.put_env(:ubot, :tracked_chat_ids, [chat_id])
+  defp handle_public_text("/init" <> _maybe_bot_name, %{
+         "chat" => %{"id" => chat_id},
+         "from" => %{"id" => from_id}
+       }) do
+    if Core.admin?(from_id) do
+      # TODO move this config to :core
+      :ok = Application.put_env(:ubot, :tracked_chat_ids, [chat_id])
 
-  #   @adapter.send_message(chat_id, """
-  #   Initialized the bot for chat id #{chat_id}.
-  #   """)
-  # end
+      @adapter.send_message(chat_id, """
+      Initialized the bot for chat id #{chat_id}.
+      """)
+    end
+  end
 
   defp handle_public_text("/credit" <> _maybe_bot_name, %{
          "chat" => %{"id" => chat_id},

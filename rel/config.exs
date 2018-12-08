@@ -29,7 +29,7 @@ environment :prod do
     overlays: [
       {:copy, "rel/etc/yahtzeebot.service", "etc/yahtzeebot.service"},
       {:copy, "rel/etc/config.exs", "etc/config.exs"},
-      {:copy, "rel/priv/tdlib-json-cli", "priv/tdlib-json-cli"}
+      {:copy, "dirty-hack/tdlib-json-cli", "priv/tdlib-json-cli"}
       # {:link, "rel/etc/yahtzeebot.service", "/etc/systemd/system/yahtzeebot.service"}
     ]
   )
