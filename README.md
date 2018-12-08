@@ -10,6 +10,8 @@ This would produce an archive with all the necessary dependencies. Note that for
 
 There is a prebuilt `tdlib` for ubuntu 18.04 in `dirty-hack/`. It's being used in the CI.
 
+There is also a prebuilt release for ubuntu 18.04 in the [releases.](https://github.com/syfgkjasdkn/yahtzeebot/releases)
+
 ---
 
 ### Deploy
