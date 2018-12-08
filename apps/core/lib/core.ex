@@ -12,10 +12,12 @@ defmodule Core do
 
       {:error, message} ->
         Logger.error("""
-        failed to send a reward of #{amount}
-        to address #{inspect(to_address)}
+        failed to send a reward of: #{amount} TRX
+        to address: #{Core.Base58.encode_check(to_address)}
         with message: #{inspect(message)}
         """)
+
+        :timer.sleep(500 * attempts)
 
         try_reward(amount, to_address, attempts - 1)
     end

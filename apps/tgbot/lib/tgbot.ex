@@ -97,11 +97,6 @@ defmodule TGBot do
         @adapter.send_message(chat_id, """
         🚨 The bot failed to send the reward.
         """)
-
-      {:error, message} ->
-        @adapter.send_message(chat_id, """
-        🚨 The bot failed to send the reward (#{message}).
-        """)
     end
   end
 
