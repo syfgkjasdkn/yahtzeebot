@@ -14,8 +14,15 @@ Environment=GAME_ID_PATH=/home/yahtzeebot/yahtzeebot/game_id
 # change these two addresses
 Environment=BOT_TRON_ADDRESS=put_your_bots_seedit_address_base58check_encoded_here
 Environment=REWARDER_PRIVKEY=put_your_base16_encoded_privkey_here
-Environment=OWNERS_ADDRESS=... # where to send 10% of the pool
-Environment=TRON_GRPC_NODE_ADDRESS=35.180.51.163:50051
+Environment=OWNERS_ADDRESS=... # where to send $HOUSE_PCT of the pool
+Environment=WINNING_PLAYER_PCT=0.8
+Environment=HOUSE_PCT=0.1
+Environment=ROLLS_TO_TRX_RATIO="3/100"
+Environment=REWARD_FOR_FOUR_OF_KIND=400
+Environment=REWARD_FOR_LARGE_STRAIGHT=200
+Environment=ADMIN_IDS=...
+# https://github.com/tronprotocol/Documentation/blob/master/TRX/Official_Public_Node.md
+Environment=GRPC_NODES=35.180.51.163:50051,34.253.187.192:50051,47.74.33.41:50051
 Environment=DB_PATH=/home/yahtzeebot/yahtzeebot/db.sqlite
 Environment=TDLIB_PATH=/home/yahtzeebot/yahtzeebot/priv/tdlib-json-cli
 # change TG_* ones
