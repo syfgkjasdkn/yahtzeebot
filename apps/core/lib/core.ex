@@ -120,6 +120,11 @@ defmodule Core do
       raise("need core.reward_for_large_straight to be set")
   end
 
+  @spec admin?(pos_integer) :: boolean
+  def admin?(telegram_id) do
+    telegram_id in Application.get_env(:core, :admin_ids)
+  end
+
   def ensure_our_address!(%Tron.TransferContract{to_address: to_address}) do
     our_address = our_address!()
     our_address == to_address || raise("wrong address: expected #{our_address} got #{to_address}")

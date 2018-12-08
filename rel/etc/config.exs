@@ -22,6 +22,11 @@ env! = fn var, type ->
           [rolls, trx] -> {String.to_integer(rolls), String.to_integer(trx)}
           _ -> raise(ArgumentError)
         end
+
+      {:list, :integer} ->
+        val
+        |> :binary.split(",", [:global])
+        |> Enum.map(&String.to_integer/1)
     end
   rescue
     _error ->
@@ -39,7 +44,8 @@ config :core,
   house_pct: env!.("HOUSE_PCT", :float),
   rolls_to_trx_ratio: env!.("ROLLS_TO_TRX_RATIO", :ratio),
   reward_for_four_of_kind: env!.("REWARD_FOR_FOUR_OF_KIND", :integer),
-  reward_for_large_straight: env!.("REWARD_FOR_LARGE_STRAIGHT", :integer)
+  reward_for_large_straight: env!.("REWARD_FOR_LARGE_STRAIGHT", :integer),
+  admin_ids: env!.("ADMIN_IDS", {:list, :integer})
 
 config :web, port: env!.("WEB_PORT", :integer)
 
