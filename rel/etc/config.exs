@@ -22,6 +22,9 @@ env! = fn var, type ->
           [rolls, trx] -> {String.to_integer(rolls), String.to_integer(trx)}
           _ -> raise(ArgumentError)
         end
+
+      {:list, :string} ->
+        :binary.split(val, ",", [:global, :trim])
     end
   rescue
     _error ->
@@ -34,7 +37,7 @@ config :core,
   address: env!.("BOT_TRON_ADDRESS", :string),
   owners_address: env!.("OWNERS_ADDRESS", :string),
   privkey: env!.("REWARDER_PRIVKEY", :string),
-  tron_grpc_node_address: env!.("TRON_GRPC_NODE_ADDRESS", :string),
+  grpc_nodes: env!.("GRPC_NODES", {:list, :string}),
   winning_player_pct: env!.("WINNING_PLAYER_PCT", :float),
   house_pct: env!.("HOUSE_PCT", :float),
   rolls_to_trx_ratio: env!.("ROLLS_TO_TRX_RATIO", :ratio),
