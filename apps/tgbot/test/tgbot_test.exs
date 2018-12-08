@@ -29,6 +29,7 @@ defmodule TGBotTest do
     test "by admin" do
       # this is one of the admins in the test config
       telegram_id = 666
+      :ok = Application.put_env(:ubot, :tracked_chat_ids, [])
 
       send_public_message(telegram_id, "/init", chat_id: -123_475)
 
@@ -44,6 +45,7 @@ defmodule TGBotTest do
 
     test "by stranger" do
       telegram_id = 1_236_578
+      :ok = Application.put_env(:ubot, :tracked_chat_ids, [])
 
       send_public_message(telegram_id, "/init", chat_id: -123_876_032)
 
