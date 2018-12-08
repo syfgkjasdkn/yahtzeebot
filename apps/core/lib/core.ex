@@ -49,8 +49,8 @@ defmodule Core do
           {:error, _reason} = failure -> failure
         end
 
-      {:ok, {:lose, _dice}} = lose ->
-        lose
+      {:ok, _outcome} = no_trx_win ->
+        no_trx_win
 
       {:error, :no_rolls} = no_rolls ->
         no_rolls
