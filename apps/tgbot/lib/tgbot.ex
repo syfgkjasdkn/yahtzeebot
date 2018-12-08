@@ -93,10 +93,9 @@ defmodule TGBot do
         Please /tip #{trx} the bot to get #{rolls} rolls.
         """)
 
-      # TODO test
-      {:error, :no_bot_funds} ->
+      {:error, :give_up} ->
         @adapter.send_message(chat_id, """
-        🚨 The bot has run out of funds.
+        🚨 The bot failed to send the reward.
         """)
     end
   end

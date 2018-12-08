@@ -50,8 +50,6 @@ defmodule Core.Application do
       Core.Base58.decode(owners_address_base58check)
 
     Application.put_env(:core, :owners_address, owners_address)
-
-    Application.get_env(:core, :tron_grpc_node_address) ||
-      raise(ArgumentError, "need core.tron_grpc_node_addrneess")
+    Application.get_env(:core, :grpc_nodes) || raise(ArgumentError, "need core.grpc_nodes")
   end
 end
