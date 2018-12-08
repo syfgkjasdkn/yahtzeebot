@@ -9,8 +9,6 @@ StandardError=journal
 Restart=on-failure
 RestartSec=5
 Environment=WEB_PORT=5001
-Environment=WEB_SECRET_KEY_BASE=not_important_right_now
-Environment=GAME_ID_PATH=/home/yahtzeebot/yahtzeebot/game_id
 # change these two addresses
 Environment=BOT_TRON_ADDRESS=put_your_bots_seedit_address_base58check_encoded_here
 Environment=REWARDER_PRIVKEY=put_your_base16_encoded_privkey_here
