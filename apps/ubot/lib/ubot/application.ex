@@ -6,7 +6,11 @@ defmodule UBot.Application do
     Enum.reject(
       [
         unless(Mix.env() == :test,
-          do: {UBot, quote(do: _opts([:api_id, :api_hash, :phone_number, :bot_id]))}
+          do:
+            {UBot,
+             quote(
+               do: _opts([:api_id, :api_hash, :phone_number, :bot_id, :tdlib_database_directory])
+             )}
         )
       ],
       &is_nil/1

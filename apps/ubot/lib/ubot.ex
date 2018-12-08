@@ -27,10 +27,13 @@ defmodule UBot do
     phone_number = opts[:phone_number] || raise("need :phone_number")
     bot_id = opts[:bot_id] || raise("need :bot_id set")
 
+    tdlib_database_directory =
+      opts[:tdlib_database_directory] || raise("need :tdlib_database_directory")
+
     config =
       struct(
         TDLib.default_config(),
-        %{api_id: api_id, api_hash: api_hash}
+        %{api_id: api_id, api_hash: api_hash, database_directory: tdlib_database_directory}
       )
 
     {:ok, pid} = TDLib.open(@session, self(), config)
