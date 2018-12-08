@@ -147,7 +147,10 @@ defmodule Core do
     prev_credit = Core.Session.credit(tipper_id) * 1_000_000
     total_amount = prev_credit + amount
 
-    case {div(total_amount, 100_000_000) * 3, div(rem(total_amount, 100_000_000), 1_000_000)} do
+    {rolls, trx} = rolls_to_trx_ratio()
+
+    case {div(total_amount, trx * 1_000_000) * rolls,
+          div(rem(total_amount, trx * 1_000_000), 1_000_000)} do
       {0, new_credit} ->
         :ok = Core.Session.set_credit(tipper_id, new_credit)
         {:ok, :credited, pool_size()}
