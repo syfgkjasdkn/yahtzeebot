@@ -22,19 +22,20 @@ defmodule Core do
   end
 
   defp try_reward(_reward, _to_address, _attempts) do
-    :error
+    {:error, :give_up}
   end
 
   @spec roll(pos_integer) ::
           {:ok, Yahtzee.result(), txid :: String.t()}
           | {:ok, Yahtzee.result()}
-          | {:error, :no_rolls}
+          | {:error, :no_rolls | :give_up | any}
   def roll(telegram_id) do
     case Core.Session.roll(telegram_id) do
       {:ok, {:win, reward, _dice} = outcome} when reward in [:large_straight, :four_of_kind] ->
-        # TODO
-        {:ok, txid} = try_reward(reward_to_trx(reward), Core.Session.seedit_address(telegram_id))
-        {:ok, outcome, txid}
+        case try_reward(reward_to_trx(reward), Core.Session.seedit_address(telegram_id)) do
+          {:ok, txid} -> {:ok, outcome, txid}
+          {:error, _reason} = failure -> failure
+        end
 
       {:ok, {:win, :pool, _dice} = outcome} ->
         pool_size = pool_size()
@@ -42,12 +43,14 @@ defmodule Core do
         to_owners = :erlang.floor(pool_size * house_pct())
 
         try_reward(to_owners, owners_address!())
-        # TODO
-        {:ok, txid} = try_reward(reward, Core.Session.seedit_address(telegram_id))
-        {:ok, outcome, txid}
 
-      other ->
-        other
+        case try_reward(reward, Core.Session.seedit_address(telegram_id)) do
+          {:ok, txid} -> {:ok, outcome, txid}
+          {:error, _reason} = failure -> failure
+        end
+
+      {:error, :no_rolls} = no_rolls ->
+        no_rolls
     end
   end
 
