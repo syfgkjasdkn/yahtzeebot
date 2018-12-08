@@ -137,9 +137,11 @@ defmodule CoreTest do
   describe "roll" do
     test "decreases roll count" do
       tipper_id = 12335
+      winner_address = :crypto.strong_rand_bytes(21)
 
       assert 10 = Core.Session.add_rolls(tipper_id, 10)
       assert 10 = Core.Session.rolls_left(tipper_id)
+      assert :ok = Core.Session.set_seedit_address(tipper_id, winner_address)
 
       # FIXME
       _ = :rand.seed(:exs1024s, {111, 123_534, 345_345})
