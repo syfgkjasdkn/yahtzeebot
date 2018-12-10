@@ -44,7 +44,7 @@
   "redbug": {:hex, :redbug, "1.2.1", "9153ee50e42c39ce3f6efa65ee746f4a52896da66862cfb59e7c0f838b7b8414", [:rebar3], [], "hexpm"},
   "rexbug": {:hex, :rexbug, "1.0.0", "52b5d25c423f1c31ecce6960a556cac6391f62d61945f305248b07149567456c", [:mix], [{:redbug, "~> 1.2", [hex: :redbug, repo: "hexpm", optional: false]}], "hexpm"},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.4", "f0eafff810d2041e93f915ef59899c923f4568f4585904d010387ed74988e77b", [:make, :mix, :rebar3], [], "hexpm"},
-  "tdlib": {:hex, :tdlib, "0.0.2", "efe1d0651b1917a212f9e1894e47fa98ff7ae420c4e03088939b6acbc9ff3448", [:make, :mix], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}, {:poison, "~> 3.1", [hex: :poison, repo: "hexpm", optional: false]}], "hexpm"},
+  "tdlib": {:git, "https://github.com/syfgkjasdkn/tdlib.git", "851d299b5caa3e544262c189f832c2eb3913ae04", [tag: "v0.0.3"]},
   "tron": {:hex, :tron, "0.1.1-rc", "b996132f9b40e6376b254b8ff83e5bdf8137ed5d56702f2a6664a861ea0f1421", [:mix], [{:google_protos, "~> 0.1", [hex: :google_protos, repo: "hexpm", optional: false]}, {:grpc, "~> 0.3.0-alpha.2", [hex: :grpc, repo: "hexpm", optional: false]}, {:keccakf1600, "~> 2.0", [hex: :keccakf1600_orig, repo: "hexpm", optional: false]}, {:libsecp256k1, "~> 0.1.10", [hex: :libsecp256k1, repo: "hexpm", optional: false]}, {:protobuf, "~> 0.5.3", [hex: :protobuf, repo: "hexpm", optional: false]}], "hexpm"},
   "typed_struct": {:hex, :typed_struct, "0.1.4", "25971ce73a8b336dedf2f80e4dafaab111af127ba4773955b66805c89e197f6a", [:mix], [], "hexpm"},
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.4.1", "d869e4c68901dd9531385bb0c8c40444ebf624e60b6962d95952775cac5e90cd", [:rebar3], [], "hexpm"},
