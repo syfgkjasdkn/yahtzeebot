@@ -24,8 +24,8 @@ defmodule TGBot do
     handle_public_text(text, message)
   end
 
-  def handle(%{"message" => %{"chat" => %{"type" => "private"}}}) do
-    :ignore
+  def handle(%{"message" => %{"chat" => %{"type" => "private"}, "text" => text} = message}) do
+    handle_private_text(text, message)
   end
 
   def handle(other) do
@@ -119,6 +119,19 @@ defmodule TGBot do
   end
 
   defp handle_public_text(_other, _message) do
+    :ignore
+  end
+
+  defp handle_private_text("/auth " <> code, %{"from" => %{"id" => from_id}}) do
+    if Core.admin?(from_id) do
+      case Integer.parse(code) do
+        {code, _rest} -> Core.auth_tdlib(code)
+        _other -> :ignore
+      end
+    end
+  end
+
+  defp handle_private_text(_other, _message) do
     :ignore
   end
 

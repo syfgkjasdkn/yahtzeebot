@@ -19,6 +19,7 @@ defmodule UBot.Application do
   def start(_type, _args) do
     children = unquote(children)
     opts = [strategy: :one_for_one, name: UBot.Supervisor]
+    Application.put_env(:core, :auth_tdlib_mfa, {UBot, :auth, []})
     Supervisor.start_link(children, opts)
   end
 
