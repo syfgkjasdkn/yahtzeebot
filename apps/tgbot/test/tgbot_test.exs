@@ -8,6 +8,8 @@ defmodule TGBotTest do
 
     {:ok, _} = Storage.start_link(path: "", name: Storage)
     :ok = Application.put_env(:core, :shared_tron_test_process, self())
+    :ok = Application.put_env(:ubot, :tracked_chat_ids, [])
+    :ok = Application.put_env(:core, :roll_outcome_file_id, nil)
 
     :ok
   end
@@ -29,7 +31,6 @@ defmodule TGBotTest do
     test "by admin" do
       # this is one of the admins in the test config
       telegram_id = 666
-      :ok = Application.put_env(:ubot, :tracked_chat_ids, [])
 
       send_public_message(telegram_id, "/init", chat_id: -123_475)
 
@@ -45,13 +46,27 @@ defmodule TGBotTest do
 
     test "by stranger" do
       telegram_id = 1_236_578
-      :ok = Application.put_env(:ubot, :tracked_chat_ids, [])
 
       send_public_message(telegram_id, "/init", chat_id: -123_876_032)
 
       refute_receive _anything
 
       assert [] == Application.get_env(:ubot, :tracked_chat_ids)
+    end
+  end
+
+  describe "set roll animation" do
+    test "when admin" do
+      # this is one of the admins in the test config
+      telegram_id = 666
+      send_animation(telegram_id, "CgADAgAD6gIAAvGQOUizEEpQ6k88OgI")
+      assert "CgADAgAD6gIAAvGQOUizEEpQ6k88OgI" == Core.roll_outcome_file_id()
+    end
+
+    test "when not admin" do
+      telegram_id = 619_283_746_129_837
+      send_animation(telegram_id, "CgADAgAD6gIAAvGQOUizEEpQ6k88OgI")
+      refute Core.roll_outcome_file_id()
     end
   end
 
@@ -131,6 +146,23 @@ defmodule TGBotTest do
       assert String.contains?(text, ["@durov rolled"])
     end
 
+    test "when have rolls and roll pic" do
+      telegram_id = 123_756_821
+
+      assert :ok = Core.set_roll_outcome_file_id("CgADAgAD6gIAAvGQOUizEEpQ6k88OgI")
+      assert :ok = Core.Session.set_seedit_address(telegram_id, :crypto.strong_rand_bytes(21))
+      assert 3 = Core.Session.add_rolls(telegram_id, 3)
+
+      send_public_message(telegram_id, "/roll")
+
+      assert_receive {:document,
+                      telegram_id: ^telegram_id,
+                      file_id: "CgADAgAD6gIAAvGQOUizEEpQ6k88OgI",
+                      opts: opts}
+
+      assert String.contains?(opts[:caption], ["@durov rolled"])
+    end
+
     test "when don't have rolls" do
       telegram_id = 101
 
@@ -170,6 +202,16 @@ defmodule TGBotTest do
         "from" => %{"id" => telegram_id, "username" => "durov"},
         "chat" => %{"id" => opts[:chat_id] || telegram_id, "type" => "supergroup"},
         "text" => text
+      }
+    })
+  end
+
+  defp send_animation(telegram_id, file_id) do
+    TGBot.handle(%{
+      "message" => %{
+        "animation" => %{"file_id" => file_id, "mime_type" => "video/mp4"},
+        "caption" => "/roll_pic",
+        "from" => %{"id" => telegram_id}
       }
     })
   end

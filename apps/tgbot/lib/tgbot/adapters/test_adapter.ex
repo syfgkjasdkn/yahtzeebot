@@ -8,6 +8,11 @@ defmodule TGBot.TestAdapter do
   end
 
   @impl true
+  def send_document(telegram_id, file_id, opts \\ []) do
+    send(self(), {:document, telegram_id: telegram_id, file_id: file_id, opts: opts})
+  end
+
+  @impl true
   def set_webhook(url) do
     send(self(), {:webhook, url: url})
   end
