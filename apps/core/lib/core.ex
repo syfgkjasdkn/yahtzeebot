@@ -138,7 +138,7 @@ defmodule Core do
     Application.put_env(:core, :roll_outcome_file_id, file_id)
   end
 
-  @spec auth_tdlib(String.t())
+  @spec auth_tdlib(String.t()) :: any
   def auth_tdlib(code) do
     {mod, fun, args} =
       Application.get_env(:core, :auth_tdlib_mfa) || raise("need core.auth_tdlib_mfa")

@@ -131,7 +131,7 @@ defmodule TGBot do
     end
   end
 
-  def handle_private_text(_other, _message) do
+  defp handle_private_text(_other, _message) do
     :ignore
   end
 
