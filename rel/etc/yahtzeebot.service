@@ -22,7 +22,6 @@ Environment=ADMIN_IDS=...
 # https://github.com/tronprotocol/Documentation/blob/master/TRX/Official_Public_Node.md
 Environment=GRPC_NODES=35.180.51.163:50051,34.253.187.192:50051,47.74.33.41:50051
 Environment=DB_PATH=/home/yahtzeebot/yahtzeebot/db.sqlite
-# TODO also change ubot/config/prod.exs (problem with the lib)
 Environment=TDLIB_PATH=/home/yahtzeebot/yahtzeebot/priv/tdlib-json-cli
 # make sure different session use different dbs
 Environment=TDLIB_DB_DIR=/tmp/tdlib

@@ -28,7 +28,7 @@ defmodule UBot.MixProject do
     [
       # TODO consider https://github.com/lattenwald/erl-tdlib
       # it uses rust nifs instead of stdin/stdout
-      {:tdlib, "~> 0.0.2"},
+      {:tdlib, github: "syfgkjasdkn/tdlib", tag: "v0.0.3"},
       {:core, in_umbrella: true},
       {:tgbot, in_umbrella: true}
     ]

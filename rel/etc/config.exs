@@ -60,5 +60,4 @@ config :ubot,
   phone_number: env!.("TG_PHONE_NUMBER", :string),
   tdlib_database_directory: env!.("TDLIB_DB_DIR", :string)
 
-# TODO doesn't work dua to tdlib compiling the path, not reading it at runtime
 config :tdlib, backend_binary: env!.("TDLIB_PATH", :string)
