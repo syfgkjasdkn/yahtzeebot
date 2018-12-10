@@ -29,7 +29,8 @@ environment :prod do
     overlays: [
       {:copy, "rel/etc/yahtzeebot.service", "etc/yahtzeebot.service"},
       {:copy, "rel/etc/config.exs", "etc/config.exs"},
-      {:copy, "dirty-hack/tdlib-json-cli", "priv/tdlib-json-cli"}
+      {:copy, "dirty-hack/tdlib-json-cli", "priv/tdlib-json-cli"},
+      {:copy, "bin/remsh", "bin/remsh"}
       # {:link, "rel/etc/yahtzeebot.service", "/etc/systemd/system/yahtzeebot.service"}
     ]
   )
@@ -53,12 +54,6 @@ release :yahtzeebot do
       tgbot: :permanent,
       ubot: :permanent,
       web: :permanent
-    ]
-  )
-
-  set(
-    commands: [
-      remsh: "rel/commands/remsh"
     ]
   )
 end

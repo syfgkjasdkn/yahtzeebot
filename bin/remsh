@@ -2,6 +2,7 @@
 
 # we don't need these when starting a node for remote console
 # TODO find a simpler way
+
 export WEB_PORT=0
 export BOT_TRON_ADDRESS=""
 export REWARDER_PRIVKEY=""
@@ -12,15 +13,15 @@ export ROLLS_TO_TRX_RATIO="3/100"
 export REWARD_FOR_FOUR_OF_KIND=1
 export REWARD_FOR_LARGE_STRAIGHT=1
 export ADMIN_IDS="1234"
-
 export GRPC_NODES=35.180.51.163:50051,34.253.187.192:50051,47.74.33.41:50051
 export DB_PATH=""
 export TDLIB_PATH=""
 export TDLIB_DB_DIR=""
-
 export TG_BOT_TOKEN=""
 export TG_API_ID=""
 export TG_API_HASH=""
 export TG_PHONE_NUMBER=""
 
-$RELEASE_ROOT_DIR/bin/yahtzeebot remote_console
+# https://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
+BINPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+$BINPATH/yahtzeebot remote_console
