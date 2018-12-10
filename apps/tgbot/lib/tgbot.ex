@@ -7,6 +7,18 @@ defmodule TGBot do
   @spec handle(map) :: any
   def handle(request)
 
+  def handle(%{
+        "message" => %{
+          "animation" => %{"file_id" => file_id, "mime_type" => "video/mp4"},
+          "caption" => "/roll_pic",
+          "from" => %{"id" => from_id}
+        }
+      }) do
+    if Core.admin?(from_id) do
+      Core.set_roll_outcome_file_id(file_id)
+    end
+  end
+
   def handle(%{"message" => %{"chat" => %{"type" => type}, "text" => text} = message})
       when type in ["group", "supergroup", "channel"] do
     handle_public_text(text, message)
@@ -64,7 +76,7 @@ defmodule TGBot do
     # TODO maybe use iolists for messages
     case Core.roll(from_id) do
       {:ok, {:win, reward, dice}, txid} ->
-        @adapter.send_message(
+        send_roll_outcome(
           chat_id,
           """
           @#{username} rolled #{render_dice(dice)} and won #{render_reward(reward)}
@@ -75,12 +87,12 @@ defmodule TGBot do
         )
 
       {:ok, {:win, reward, dice}} ->
-        @adapter.send_message(chat_id, """
+        send_roll_outcome(chat_id, """
         @#{username} rolled #{render_dice(dice)} and won #{render_reward(reward)}
         """)
 
       {:ok, {:lose, dice}} ->
-        @adapter.send_message(chat_id, """
+        send_roll_outcome(chat_id, """
         @#{username} rolled #{render_dice(dice)} and lost
         """)
 
@@ -108,6 +120,14 @@ defmodule TGBot do
 
   defp handle_public_text(_other, _message) do
     :ignore
+  end
+
+  defp send_roll_outcome(telegram_id, text, opts \\ []) do
+    if file_id = Core.roll_outcome_file_id() do
+      @adapter.send_document(telegram_id, file_id, [{:caption, text} | opts])
+    else
+      @adapter.send_message(telegram_id, text, opts)
+    end
   end
 
   @spec token :: String.t()

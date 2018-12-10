@@ -12,6 +12,11 @@ defmodule TGBot.NadiaAdapter do
   end
 
   @impl true
+  def send_document(telegram_id, file_id, opts \\ []) do
+    Nadia.send_document(telegram_id, file_id, opts)
+  end
+
+  @impl true
   def bot_id do
     {:ok, %Nadia.Model.User{id: bot_id}} = Nadia.get_me()
 

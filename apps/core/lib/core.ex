@@ -128,6 +128,16 @@ defmodule Core do
       raise("need core.reward_for_large_straight to be set")
   end
 
+  @spec roll_outcome_file_id :: String.t() | nil
+  def roll_outcome_file_id do
+    Application.get_env(:core, :roll_outcome_file_id)
+  end
+
+  @spec set_roll_outcome_file_id(String.t()) :: :ok
+  def set_roll_outcome_file_id(file_id) do
+    Application.put_env(:core, :roll_outcome_file_id, file_id)
+  end
+
   @spec admin?(pos_integer) :: boolean
   def admin?(telegram_id) do
     telegram_id in Application.get_env(:core, :admin_ids)
