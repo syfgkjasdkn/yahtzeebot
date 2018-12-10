@@ -153,6 +153,9 @@ defmodule CoreTest do
         {:ok, {:win, :extra_roll, _}} ->
           assert 10 == Core.Session.rolls_left(tipper_id)
 
+        {:ok, {:win, _, _}, _} ->
+          assert 9 == Core.Session.rolls_left(tipper_id)
+
         {:ok, {:win, _, _}} ->
           assert 9 == Core.Session.rolls_left(tipper_id)
       end
