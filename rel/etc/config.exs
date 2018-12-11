@@ -50,7 +50,9 @@ config :core,
   reward_for_large_straight: env!.("REWARD_FOR_LARGE_STRAIGHT", :integer),
   admin_ids: env!.("ADMIN_IDS", {:list, :integer})
 
-config :web, port: env!.("WEB_PORT", :integer)
+config :web,
+  port: env!.("WEB_PORT", :integer),
+  public_ip: env!.("PUBLIC_IP", :string)
 
 config :nadia, token: env!.("TG_BOT_TOKEN", :string)
 

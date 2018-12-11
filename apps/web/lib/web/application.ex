@@ -27,25 +27,20 @@ defmodule Web.Application do
   def maybe_set_webhook do
     # TODO simplify
     if unquote(Mix.env() == :prod) do
-      addr = addr!()
-      port = :ranch.get_port(Web.Router.HTTPS) || raise("failed to get https port")
-      url = "https://#{addr}:#{port}/tgbot"
+      if public_ip = Application.get_env(:web, :public_ip) do
+        port = :ranch.get_port(Web.Router.HTTPS) || raise("failed to get https port")
+        url = "https://#{public_ip}:#{port}/tgbot"
 
-      :ok =
-        TGBot.set_webhook(
-          url: url,
-          certificate: Path.join(Application.app_dir(:web), "priv/server.pem")
-        )
+        :ok =
+          TGBot.set_webhook(
+            url: url,
+            certificate: Path.join(Application.app_dir(:web), "priv/server.pem")
+          )
 
-      Logger.info("set webhook to #{url}")
+        Logger.info("set webhook to #{url}")
+      else
+        Logger.warn("couldn't find web.public_ip env var, skipping webhook setup")
+      end
     end
-  end
-
-  defp addr! do
-    {:ok, [{addr, _, _} | _rest]} = :inet.getif()
-
-    addr
-    |> :inet.ntoa()
-    |> to_string()
   end
 end

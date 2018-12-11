@@ -19,6 +19,7 @@ Environment=ROLLS_TO_TRX_RATIO="3/100"
 Environment=REWARD_FOR_FOUR_OF_KIND=400
 Environment=REWARD_FOR_LARGE_STRAIGHT=200
 Environment=ADMIN_IDS=...
+Environment=PUBLIC_IP=...
 # https://github.com/tronprotocol/Documentation/blob/master/TRX/Official_Public_Node.md
 Environment=GRPC_NODES=35.180.51.163:50051,34.253.187.192:50051,47.74.33.41:50051
 Environment=DB_PATH=/home/yahtzeebot/yahtzeebot/db.sqlite
