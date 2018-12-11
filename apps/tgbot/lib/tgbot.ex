@@ -124,9 +124,7 @@ defmodule TGBot do
 
   defp handle_private_text("/auth " <> code, %{"from" => %{"id" => from_id}}) do
     if Core.admin?(from_id) do
-      case Integer.parse(code) do
-        {code, _rest} -> Core.auth_tdlib(code)
-        _other -> :ignore
+      Core.auth_tdlib(code)
       end
     end
   end
