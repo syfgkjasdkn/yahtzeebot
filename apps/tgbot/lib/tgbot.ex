@@ -125,7 +125,6 @@ defmodule TGBot do
   defp handle_private_text("/auth " <> code, %{"from" => %{"id" => from_id}}) do
     if Core.admin?(from_id) do
       Core.auth_tdlib(code)
-      end
     end
   end
 
