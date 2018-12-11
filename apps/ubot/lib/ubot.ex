@@ -38,8 +38,8 @@ defmodule UBot do
 
     {:ok, pid} = TDLib.open(@session, self(), config)
 
-    # Set TDLib (C++) verbosity to 10
-    TDLib.transmit(@session, "verbose 10")
+    # Set TDLib (C++) verbosity to 0
+    TDLib.transmit(@session, "verbose 0")
 
     {:ok,
      state(

@@ -172,9 +172,11 @@ defmodule TGBot do
     @adapter.bot_id()
   end
 
-  def set_webhook(url) do
-    url
-    |> Path.join(token())
+  def set_webhook(opts) do
+    opts[:url] || raise("need :url to be able to set a webhook")
+
+    opts
+    |> Keyword.update(:url, nil, fn url -> Path.join(url, token()) end)
     |> @adapter.set_webhook()
   end
 end
