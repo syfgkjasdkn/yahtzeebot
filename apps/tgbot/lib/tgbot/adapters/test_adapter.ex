@@ -13,8 +13,8 @@ defmodule TGBot.TestAdapter do
   end
 
   @impl true
-  def set_webhook(url) do
-    send(self(), {:webhook, url: url})
+  def set_webhook(opts) do
+    send(self(), {:webhook, opts})
   end
 
   @impl true

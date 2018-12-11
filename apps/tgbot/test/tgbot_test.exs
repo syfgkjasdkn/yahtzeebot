@@ -180,10 +180,11 @@ defmodule TGBotTest do
   end
 
   test "set_webhook" do
-    TGBot.set_webhook("https://some.website/tgbot")
+    TGBot.set_webhook(url: "https://some.website/tgbot", certificate: "priv/somekey.pem")
 
     assert_receive {:webhook,
-                    url: "https://some.website/tgbot/1263745172:iugyaksdfhjfgrgyuwekfhjsdb"}
+                    url: "https://some.website/tgbot/1263745172:iugyaksdfhjfgrgyuwekfhjsdb",
+                    certificate: "priv/somekey.pem"}
   end
 
   defp send_private_message(telegram_id, text) do
