@@ -57,6 +57,10 @@ defmodule UBot do
     {:reply, reply, state(state, authed?: true)}
   end
 
+  def handle_call({:auth, _code}, _from, state) do
+    {:reply, :ok, state}
+  end
+
   @doc false
   def handle_info(msg, state)
 
