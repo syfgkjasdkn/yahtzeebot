@@ -58,6 +58,7 @@ defmodule UBot do
   end
 
   def handle_call({:auth, _code}, _from, state) do
+    Logger.warn("ignoring auth code")
     {:reply, :ok, state}
   end
 
