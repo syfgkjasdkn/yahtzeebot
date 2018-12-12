@@ -69,7 +69,7 @@ defmodule CoreTest do
     end
 
     test "increases pool size" do
-      tipper_id = 1235
+      tipper_id = 1_223_435
       txid = Base.encode16("trx100", case: :lower)
 
       assert 0 == Core.pool_size()
