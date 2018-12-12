@@ -3,6 +3,7 @@
 # we don't need these when starting a node for remote console
 # TODO find a simpler way
 
+export PUBLIC_IP=0
 export WEB_PORT=0
 export BOT_TRON_ADDRESS=""
 export REWARDER_PRIVKEY=""
