@@ -9,7 +9,6 @@ defmodule TGBotTest do
     {:ok, _} = Storage.start_link(path: "", name: Storage)
     :ok = Application.put_env(:core, :shared_tron_test_process, self())
     :ok = Application.put_env(:ubot, :tracked_chat_ids, [])
-    :ok = Application.put_env(:core, :roll_outcome_file_id, nil)
 
     :ok
   end
