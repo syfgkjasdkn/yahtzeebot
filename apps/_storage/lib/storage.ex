@@ -132,6 +132,21 @@ defmodule Storage do
     GenServer.call(pid, {:change_pool_size, change})
   end
 
+  @spec roll_pic_file_id(String.t()) :: String.t() | nil
+  @spec roll_pic_file_id(module | pid, String.t()) :: String.t() | nil
+  def roll_pic_file_id(pid \\ __MODULE__, bot_id) do
+    case GenServer.call(pid, {:roll_pic, bot_id}) do
+      [{file_id}] -> file_id
+      [] -> nil
+    end
+  end
+
+  @spec set_roll_pic(String.t(), String.t()) :: :ok
+  @spec set_roll_pic(module | pid, String.t(), String.t()) :: :ok
+  def set_roll_pic(pid \\ __MODULE__, bot_id, file_id) do
+    GenServer.call(pid, {:set_roll_pic, bot_id, file_id})
+  end
+
   defp _address(:undefined), do: nil
   defp _address({:blob, address}), do: address
 
@@ -211,6 +226,20 @@ defmodule Storage do
     {:reply, :esqlite3.fetchall(statement), state}
   end
 
+  def handle_call({:roll_pic, bot_id}, _from, state) do
+    sql = "SELECT file_id FROM roll_pics WHERE bot_id = ?"
+    {:ok, statement, state} = prepared_statement(sql, state)
+    :ok = :esqlite3.bind(statement, [bot_id])
+    {:reply, :esqlite3.fetchall(statement), state}
+  end
+
+  def handle_call({:set_roll_pic, bot_id, file_id}, _from, state) do
+    sql = "INSERT OR REPLACE INTO roll_pics (bot_id, file_id) VALUES (?, ?)"
+    {:ok, statement, state} = prepared_statement(sql, state)
+    :ok = :esqlite3.bind(statement, [bot_id, file_id])
+    {:reply, run(statement), state}
+  end
+
   def handle_call(:conn, _from, state(conn: conn) = state) do
     {:reply, conn, state}
   end
@@ -234,6 +263,11 @@ defmodule Storage do
     CREATE TABLE IF NOT EXISTS kv (
       key TEXT PRIMARY KEY,
       value INTEGER
+    );
+
+    CREATE TABLE IF NOT EXISTS roll_pics (
+      bot_id TEXT PRIMARY KEY,
+      file_id TEXT
     );
 
     INSERT OR IGNORE INTO kv (key, value) VALUES ('pool_size', 0);

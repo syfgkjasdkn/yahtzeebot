@@ -156,4 +156,17 @@ defmodule StorageTest do
     assert :ok = Storage.reset_pool_size(pid, 15)
     assert 15 = Storage.pool_size(pid)
   end
+
+  test "roll pic", %{pid: pid} do
+    bot_id = "1234:ausydft"
+    refute Storage.roll_pic_file_id(pid, bot_id)
+
+    # set once
+    assert :ok == Storage.set_roll_pic(pid, bot_id, "qwer1")
+    assert "qwer1" == Storage.roll_pic_file_id(pid, bot_id)
+
+    # set twice
+    assert :ok == Storage.set_roll_pic(pid, bot_id, "qwer2")
+    assert "qwer2" == Storage.roll_pic_file_id(pid, bot_id)
+  end
 end

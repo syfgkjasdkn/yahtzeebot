@@ -130,12 +130,14 @@ defmodule Core do
 
   @spec roll_outcome_file_id :: String.t() | nil
   def roll_outcome_file_id do
-    Application.get_env(:core, :roll_outcome_file_id)
+    bot_id = Application.get_env(:nadia, :token)
+    Storage.roll_pic_file_id(bot_id)
   end
 
   @spec set_roll_outcome_file_id(String.t()) :: :ok
   def set_roll_outcome_file_id(file_id) do
-    Application.put_env(:core, :roll_outcome_file_id, file_id)
+    bot_id = Application.get_env(:nadia, :token)
+    Storage.set_roll_pic(bot_id, file_id)
   end
 
   @spec auth_tdlib(String.t()) :: any
