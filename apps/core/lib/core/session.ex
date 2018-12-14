@@ -105,6 +105,7 @@ defmodule Core.Session do
     {outcome, state} =
       case Yahtzee.play() do
         {:win, :extra_roll, _dice} = outcome ->
+          :ok = Storage.change_rolls_count(telegram_id, +1)
           {outcome, state(state, rolls_left: rolls_left + 1)}
 
         outcome ->
