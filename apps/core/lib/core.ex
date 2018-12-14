@@ -153,7 +153,9 @@ defmodule Core do
     telegram_id in Application.get_env(:core, :admin_ids)
   end
 
-  def ensure_our_address!(%Tron.TransferContract{to_address: to_address}) do
+  @spec ensure_our_address!(Tron.TransferContract.t() | Tron.TransferAssetContract.t()) ::
+          true | no_return
+  def ensure_our_address!(%{to_address: to_address}) do
     our_address = our_address!()
     our_address == to_address || raise("wrong address: expected #{our_address} got #{to_address}")
   end
