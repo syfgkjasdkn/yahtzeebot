@@ -25,7 +25,7 @@ defmodule Storage.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:esqlite, "~> 0.2.4"},
+      {:esqlite, "0.2.4"},
       {:typed_struct, "~> 0.1"}
     ]
   end
