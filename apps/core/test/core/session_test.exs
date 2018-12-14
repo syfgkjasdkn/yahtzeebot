@@ -69,21 +69,29 @@ defmodule Core.SessionTest do
 
     assert 1000 = Session.add_rolls(telegram_id, 1000)
 
-    Enum.each(1..1000, fn _ ->
+    Enum.reduce(1..1000, 1000, fn _, rolls_left ->
       assert {:ok, outcome} = Session.roll(telegram_id)
+      rolls_left = rolls_left - 1
 
-      case outcome do
-        {:win, reward, dice} when is_list(dice) ->
-          assert reward in [:extra_roll, :large_straight, :four_of_kind, :pool]
-          assert length(dice) == 5
+      rolls_left =
+        case outcome do
+          {:win, reward, dice} when is_list(dice) ->
+            assert reward in [:extra_roll, :large_straight, :four_of_kind, :pool]
+            assert length(dice) == 5
 
-        {:lose, dice} when is_list(dice) ->
-          assert length(dice) == 5
-      end
+            case reward do
+              :extra_roll -> rolls_left + 1
+              _other -> rolls_left
+            end
+
+          {:lose, dice} when is_list(dice) ->
+            assert length(dice) == 5
+            rolls_left
+        end
+
+      assert rolls_left == Session.rolls_left(telegram_id)
+      rolls_left
     end)
-
-    assert {:error, :no_rolls} = Session.roll(telegram_id)
-    assert 0 = Session.rolls_left(telegram_id)
   end
 
   test "add rolls" do
