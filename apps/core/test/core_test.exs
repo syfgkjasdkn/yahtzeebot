@@ -4,6 +4,7 @@ defmodule CoreTest do
   setup do
     {:ok, _} = Storage.start_link(path: "", name: Storage)
     :ok = Application.put_env(:core, :shared_tron_test_process, self())
+    :ok = Application.put_env(:ubot, :tracked_chat_ids, [])
     :ok
   end
 
@@ -131,6 +132,38 @@ defmodule CoreTest do
       assert Core.admin?(666)
       assert Core.admin?(777)
       assert Core.admin?(123)
+    end
+  end
+
+  describe "initialized rooms" do
+    test "initialize_room/1 and deinitialize_room/1" do
+      assert phone_number = Application.get_env(:ubot, :phone_number)
+
+      room_id1 = -123_456
+      room_id2 = -1_234_567
+
+      assert :ok == Core.initialize_room(room_id1)
+      assert [room_id1] == Application.get_env(:ubot, :tracked_chat_ids)
+      assert [room_id1] == Storage.initialized_rooms(phone_number)
+
+      assert {:error,
+              {:constraint,
+               'UNIQUE constraint failed: initialized_rooms.phone_number, initialized_rooms.room_id'}} ==
+               Core.initialize_room(room_id1)
+
+      assert [room_id1] == Application.get_env(:ubot, :tracked_chat_ids)
+      assert [room_id1] == Storage.initialized_rooms(phone_number)
+
+      assert :ok == Core.initialize_room(room_id2)
+
+      assert Enum.sort([room_id1, room_id2]) ==
+               Enum.sort(Application.get_env(:ubot, :tracked_chat_ids))
+
+      assert Enum.sort([room_id1, room_id2]) == Enum.sort(Storage.initialized_rooms(phone_number))
+
+      assert :ok == Core.deinitialize_room(room_id1)
+      assert [room_id2] == Application.get_env(:ubot, :tracked_chat_ids)
+      assert [room_id2] == Storage.initialized_rooms(phone_number)
     end
   end
 
