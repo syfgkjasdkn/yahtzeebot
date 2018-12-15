@@ -20,6 +20,18 @@ defmodule UBot.Application do
     children = unquote(children)
     opts = [strategy: :one_for_one, name: UBot.Supervisor]
     Application.put_env(:core, :auth_tdlib_mfa, {UBot, :auth, []})
+
+    # TODO maybe move to ubot.ex
+    unless unquote(Mix.env()) == :test do
+      Application.put_env(
+        :ubot,
+        :tracked_chat_ids,
+        Storage.initialized_rooms(
+          Application.get_env(:ubot, :phone_number) || raise("need ubot.phone_number")
+        )
+      )
+    end
+
     Supervisor.start_link(children, opts)
   end
 
