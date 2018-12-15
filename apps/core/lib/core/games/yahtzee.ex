@@ -21,10 +21,16 @@ defmodule Core.Games.Yahtzee do
       [1, 2, 3, 4, 5] -> {:win, :large_straight, dice}
       [2, 3, 4, 5, 6] -> {:win, :large_straight, dice}
       [1, 2, 3, 4, _] -> {:win, :extra_roll, dice}
+      [1, 2, 2, 3, 4] -> {:win, :extra_roll, dice}
+      [1, 2, 3, 3, 4] -> {:win, :extra_roll, dice}
       [_, 1, 2, 3, 4] -> {:win, :extra_roll, dice}
       [2, 3, 4, 5, _] -> {:win, :extra_roll, dice}
+      [2, 3, 3, 4, 5] -> {:win, :extra_roll, dice}
+      [2, 3, 4, 4, 5] -> {:win, :extra_roll, dice}
       [_, 2, 3, 4, 5] -> {:win, :extra_roll, dice}
       [3, 4, 5, 6, _] -> {:win, :extra_roll, dice}
+      [3, 4, 4, 5, 6] -> {:win, :extra_roll, dice}
+      [3, 4, 5, 5, 6] -> {:win, :extra_roll, dice}
       [_, 3, 4, 5, 6] -> {:win, :extra_roll, dice}
       [a, a, a, b, b] -> {:win, :extra_roll, dice}
       [a, a, b, b, b] -> {:win, :extra_roll, dice}
