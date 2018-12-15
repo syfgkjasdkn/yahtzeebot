@@ -147,6 +147,32 @@ defmodule Storage do
     GenServer.call(pid, {:set_roll_pic, bot_id, file_id})
   end
 
+  @spec initialized_rooms(String.t()) :: [room_id :: integer]
+  @spec initialized_rooms(module | pid, String.t()) :: [room_id :: integer]
+  def initialized_rooms(pid \\ __MODULE__, phone_number) do
+    pid
+    |> GenServer.call({:initialized_rooms, phone_number})
+    |> Enum.map(fn {room_id} -> room_id end)
+  end
+
+  @spec insert_initialized_room(String.t(), integer) :: :ok | other :: any
+  @spec insert_initialized_room(module | pid, String.t(), integer) :: :ok | other :: any
+  def insert_initialized_room(pid \\ __MODULE__, phone_number, room_id) do
+    GenServer.call(pid, {:insert_initialized_room, phone_number, room_id})
+  end
+
+  @spec delete_initialized_room(String.t(), integer) :: :ok | other :: any
+  @spec delete_initialized_room(module | pid, String.t(), integer) :: :ok | other :: any
+  def delete_initialized_room(pid \\ __MODULE__, phone_number, room_id) do
+    GenServer.call(pid, {:delete_initialized_room, phone_number, room_id})
+  end
+
+  @spec reset_initialized_rooms(String.t()) :: :ok
+  @spec reset_initialized_rooms(module | pid, String.t()) :: :ok
+  def reset_initialized_rooms(pid \\ __MODULE__, phone_number) do
+    GenServer.call(pid, {:reset_initialized_rooms, phone_number})
+  end
+
   defp _address(:undefined), do: nil
   defp _address({:blob, address}), do: address
 
@@ -240,6 +266,34 @@ defmodule Storage do
     {:reply, run(statement), state}
   end
 
+  def handle_call({:initialized_rooms, phone_number}, _from, state) do
+    sql = "SELECT room_id FROM initialized_rooms WHERE phone_number = ?"
+    {:ok, statement, state} = prepared_statement(sql, state)
+    :ok = :esqlite3.bind(statement, [phone_number])
+    {:reply, :esqlite3.fetchall(statement), state}
+  end
+
+  def handle_call({:insert_initialized_room, phone_number, room_id}, _from, state) do
+    sql = "INSERT INTO initialized_rooms (phone_number, room_id) VALUES (?, ?)"
+    {:ok, statement, state} = prepared_statement(sql, state)
+    :ok = :esqlite3.bind(statement, [phone_number, room_id])
+    {:reply, run(statement), state}
+  end
+
+  def handle_call({:delete_initialized_room, phone_number, room_id}, _from, state) do
+    sql = "DELETE FROM initialized_rooms WHERE phone_number = ? AND room_id = ?"
+    {:ok, statement, state} = prepared_statement(sql, state)
+    :ok = :esqlite3.bind(statement, [phone_number, room_id])
+    {:reply, run(statement), state}
+  end
+
+  def handle_call({:reset_initialized_rooms, phone_number}, _from, state) do
+    sql = "DELETE FROM initialized_rooms WHERE phone_number = ?"
+    {:ok, statement, state} = prepared_statement(sql, state)
+    :ok = :esqlite3.bind(statement, [phone_number])
+    {:reply, run(statement), state}
+  end
+
   def handle_call(:conn, _from, state(conn: conn) = state) do
     {:reply, conn, state}
   end
@@ -268,6 +322,12 @@ defmodule Storage do
     CREATE TABLE IF NOT EXISTS roll_pics (
       bot_id TEXT PRIMARY KEY,
       file_id TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS initialized_rooms (
+      phone_number TEXT,
+      room_id INTEGER,
+      PRIMARY KEY (phone_number, room_id)
     );
 
     INSERT OR IGNORE INTO kv (key, value) VALUES ('pool_size', 0);

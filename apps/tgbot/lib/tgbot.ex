@@ -49,11 +49,29 @@ defmodule TGBot do
          "from" => %{"id" => from_id}
        }) do
     if Core.admin?(from_id) do
-      # TODO move this config to :core
-      :ok = Application.put_env(:ubot, :tracked_chat_ids, [chat_id])
+      case Core.initialize_room(chat_id) do
+        :ok ->
+          @adapter.send_message(chat_id, """
+          Initialized the bot for chat id #{chat_id}.
+          """)
+
+        {:error, {:constraint, _description}} ->
+          @adapter.send_message(chat_id, """
+          The bot has already been initialized for chat id #{chat_id}.
+          """)
+      end
+    end
+  end
+
+  defp handle_public_text("/deinit" <> _maybe_bot_name, %{
+         "chat" => %{"id" => chat_id},
+         "from" => %{"id" => from_id}
+       }) do
+    if Core.admin?(from_id) do
+      :ok = Core.deinitialize_room(chat_id)
 
       @adapter.send_message(chat_id, """
-      Initialized the bot for chat id #{chat_id}.
+      Deinitialized the bot for chat id #{chat_id}.
       """)
     end
   end

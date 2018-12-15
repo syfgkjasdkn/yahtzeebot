@@ -153,6 +153,30 @@ defmodule Core do
     telegram_id in Application.get_env(:core, :admin_ids)
   end
 
+  @spec initialize_room(integer) :: :ok | {:error, any}
+  def initialize_room(room_id) when is_integer(room_id) do
+    phone_number = Application.get_env(:ubot, :phone_number) || raise("need ubot.phone_number")
+
+    case Storage.insert_initialized_room(phone_number, room_id) do
+      :ok ->
+        initialize_rooms = Storage.initialized_rooms(phone_number)
+        :ok = Application.put_env(:ubot, :tracked_chat_ids, initialize_rooms)
+        :ok
+
+      other ->
+        other
+    end
+  end
+
+  @spec deinitialize_room(integer) :: :ok
+  def deinitialize_room(room_id) when is_integer(room_id) do
+    phone_number = Application.get_env(:ubot, :phone_number) || raise("need ubot.phone_number")
+    :ok = Storage.delete_initialized_room(phone_number, room_id)
+    initialize_rooms = Storage.initialized_rooms(phone_number)
+    :ok = Application.put_env(:ubot, :tracked_chat_ids, initialize_rooms)
+    :ok
+  end
+
   @spec ensure_our_address!(Tron.TransferContract.t() | Tron.TransferAssetContract.t()) ::
           true | no_return
   def ensure_our_address!(%{to_address: to_address}) do

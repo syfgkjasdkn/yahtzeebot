@@ -26,7 +26,7 @@ defmodule TGBotTest do
     refute_receive _anything
   end
 
-  describe "/init" do
+  describe "/init and /deinit" do
     test "by admin" do
       # this is one of the admins in the test config
       telegram_id = 666
@@ -37,6 +37,39 @@ defmodule TGBotTest do
                       telegram_id: -123_475,
                       text: """
                       Initialized the bot for chat id -123475.
+                      """,
+                      opts: []}
+
+      assert [-123_475] == Application.get_env(:ubot, :tracked_chat_ids)
+
+      send_public_message(telegram_id, "/init", chat_id: -123_475)
+
+      assert_receive {:message,
+                      telegram_id: -123_475,
+                      text: """
+                      The bot has already been initialized for chat id -123475.
+                      """,
+                      opts: []}
+
+      assert [-123_475] == Application.get_env(:ubot, :tracked_chat_ids)
+
+      send_public_message(telegram_id, "/init", chat_id: -1_234_756)
+
+      assert_receive {:message,
+                      telegram_id: -1_234_756,
+                      text: """
+                      Initialized the bot for chat id -1234756.
+                      """,
+                      opts: []}
+
+      assert [-1_234_756, -123_475] == Application.get_env(:ubot, :tracked_chat_ids)
+
+      send_public_message(telegram_id, "/deinit", chat_id: -1_234_756)
+
+      assert_receive {:message,
+                      telegram_id: -1_234_756,
+                      text: """
+                      Deinitialized the bot for chat id -1234756.
                       """,
                       opts: []}
 

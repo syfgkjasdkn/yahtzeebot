@@ -169,4 +169,48 @@ defmodule StorageTest do
     assert :ok == Storage.set_roll_pic(pid, bot_id, "qwer2")
     assert "qwer2" == Storage.roll_pic_file_id(pid, bot_id)
   end
+
+  test "initialized rooms", %{pid: pid} do
+    phone_number1 = "18273645"
+    phone_number2 = "1237864"
+
+    room_id1 = -18_237_645
+    room_id2 = -29_834_756
+    room_id3 = -23_847_657
+
+    assert [] == Storage.initialized_rooms(pid, phone_number1)
+    assert [] == Storage.initialized_rooms(pid, phone_number2)
+
+    assert :ok == Storage.insert_initialized_room(pid, phone_number1, room_id1)
+    assert :ok == Storage.insert_initialized_room(pid, phone_number1, room_id2)
+
+    assert {:error,
+            {:constraint,
+             'UNIQUE constraint failed: initialized_rooms.phone_number, initialized_rooms.room_id'}} ==
+             Storage.insert_initialized_room(pid, phone_number1, room_id2)
+
+    assert Enum.sort([room_id2, room_id1]) ==
+             Enum.sort(Storage.initialized_rooms(pid, phone_number1))
+
+    assert [] == Storage.initialized_rooms(pid, phone_number2)
+
+    assert :ok == Storage.delete_initialized_room(pid, phone_number1, room_id3)
+    assert :ok == Storage.delete_initialized_room(pid, phone_number1, room_id2)
+
+    assert [room_id1] == Storage.initialized_rooms(pid, phone_number1)
+
+    assert :ok == Storage.insert_initialized_room(pid, phone_number2, room_id1)
+    assert :ok == Storage.insert_initialized_room(pid, phone_number2, room_id2)
+    assert :ok == Storage.insert_initialized_room(pid, phone_number2, room_id3)
+
+    assert [room_id1] == Storage.initialized_rooms(pid, phone_number1)
+
+    assert Enum.sort([room_id1, room_id2, room_id3]) ==
+             Enum.sort(Storage.initialized_rooms(pid, phone_number2))
+
+    assert :ok == Storage.reset_initialized_rooms(pid, phone_number2)
+
+    assert [room_id1] == Storage.initialized_rooms(pid, phone_number1)
+    assert [] == Storage.initialized_rooms(pid, phone_number2)
+  end
 end
