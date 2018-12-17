@@ -8,13 +8,7 @@ defmodule Web.Application do
 
     if unquote(Mix.env() == :prod) do
       if public_ip = Application.get_env(:web, :public_ip) do
-        case generate_certs(public_ip) do
-          {:ok, _output} ->
-            Logger.info("generated certs successfully")
-
-          {:error, reason} ->
-            Logger.error("failed to generate certs with error:\n\n#{reason}")
-        end
+        generate_certs(public_ip)
       end
     end
 
@@ -52,21 +46,25 @@ defmodule Web.Application do
   end
 
   @doc false
+  @spec openssl(binary) :: binary
   def openssl(args) do
-    case System.cmd("openssl", args, stderr_to_stdout: true) do
-      {output, 0} -> {:ok, output}
-      {error, 1} -> {:error, error}
-    end
+    :os.cmd('openssl #{args}')
   end
 
   @doc false
   @spec generate_certs(String.t()) :: {:ok, binary} | {:error, binary}
   def generate_certs(ip_address) do
     priv_dir = Application.app_dir(:web, "/priv")
-    openssl(~w[
-        req -newkey rsa:2048 -sha256 -nodes -keyout #{Path.join(priv_dir, "server.key")}
-        -x509 -days 365 -out #{Path.join(priv_dir, "server.pem")}
-        -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=#{ip_address}"
-      ])
+
+    args = ~w[
+      req -newkey rsa:2048 -sha256 -nodes
+      -keyout #{Path.join(priv_dir, "server.key")}
+      -x509 -days 365 -out #{Path.join(priv_dir, "server.pem")}
+      -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=#{ip_address}"
+    ]
+
+    args
+    |> Enum.join(" ")
+    |> openssl()
   end
 end
