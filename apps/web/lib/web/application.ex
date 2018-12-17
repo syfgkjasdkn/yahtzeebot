@@ -6,6 +6,12 @@ defmodule Web.Application do
   def start(_type, _args) do
     port = Application.get_env(:web, :port) || raise("need web.port")
 
+    if unquote(Mix.env() == :prod) do
+      if public_ip = Application.get_env(:web, :public_ip) do
+        generate_certs(public_ip)
+      end
+    end
+
     children = [
       {Plug.Cowboy,
        scheme: :https,
@@ -42,5 +48,24 @@ defmodule Web.Application do
         Logger.warn("couldn't find web.public_ip env var, skipping webhook setup")
       end
     end
+  end
+
+  @doc false
+  def openssl(args) do
+    case System.cmd("openssl", args, stderr_to_stdout: true) do
+      {output, 0} -> {:ok, output}
+      {error, 1} -> {:error, error}
+    end
+  end
+
+  @doc false
+  @spec generate_certs(String.t()) :: {:ok, binary} | {:error, binary}
+  def generate_certs(ip_address) do
+    priv_dir = Application.app_dir(:web, "/priv")
+    openssl(~w[
+        req -newkey rsa:2048 -sha256 -nodes -keyout #{Path.join(priv_dir, "server.key")}
+        -x509 -days 365 -out #{Path.join(priv_dir, "server.pem")}
+        -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=#{ip_address}"
+      ])
   end
 end
