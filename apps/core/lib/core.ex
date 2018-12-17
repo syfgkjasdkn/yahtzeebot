@@ -34,9 +34,15 @@ defmodule Core do
   def roll(telegram_id) do
     case Core.Session.roll(telegram_id) do
       {:ok, {:win, reward, _dice} = outcome} when reward in [:large_straight, :four_of_kind] ->
-        case try_reward(reward_to_trx(reward), Core.Session.seedit_address(telegram_id)) do
-          {:ok, txid} -> {:ok, outcome, txid}
-          {:error, _reason} = failure -> failure
+        reward_amount = reward_to_trx(reward)
+
+        case try_reward(reward_amount, Core.Session.seedit_address(telegram_id)) do
+          {:ok, txid} ->
+            :ok = Storage.change_pool_size(-reward_amount)
+            {:ok, outcome, txid}
+
+          {:error, _reason} = failure ->
+            failure
         end
 
       {:ok, {:win, :pool, _dice} = outcome} ->
@@ -44,11 +50,21 @@ defmodule Core do
         reward = :erlang.floor(pool_size * winning_player_pct())
         to_owners = :erlang.floor(pool_size * house_pct())
 
-        try_reward(to_owners, owners_address!())
+        case try_reward(to_owners, owners_address!()) do
+          {:ok, _txid} ->
+            :ok = Storage.change_pool_size(-to_owners)
+
+          _ ->
+            nil
+        end
 
         case try_reward(reward, Core.Session.seedit_address(telegram_id)) do
-          {:ok, txid} -> {:ok, outcome, txid}
-          {:error, _reason} = failure -> failure
+          {:ok, txid} ->
+            :ok = Storage.change_pool_size(-reward)
+            {:ok, outcome, txid}
+
+          {:error, _reason} = failure ->
+            failure
         end
 
       {:ok, _outcome} = no_trx_win ->
