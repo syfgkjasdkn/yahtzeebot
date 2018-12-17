@@ -8,7 +8,13 @@ defmodule Web.Application do
 
     if unquote(Mix.env() == :prod) do
       if public_ip = Application.get_env(:web, :public_ip) do
-        generate_certs(public_ip)
+        case generate_certs(public_ip) do
+          {:ok, _output} ->
+            Logger.info("generated certs successfully")
+
+          {:error, reason} ->
+            Logger.error("failed to generate certs with error:\n\n#{reason}")
+        end
       end
     end
 
