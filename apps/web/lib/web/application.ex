@@ -20,14 +20,9 @@ defmodule Web.Application do
 
     children = [
       {Plug.Cowboy,
-       scheme: :https,
+       scheme: Application.get_env(:web, :scheme, :https),
        plug: Web.Router,
-       options: [
-         port: port,
-         otp_app: :web,
-         keyfile: "priv/server.key",
-         certfile: "priv/server.pem"
-       ]},
+       options: [port: port] ++ Application.get_env(:web, :options, [])},
       {Task, fn -> maybe_set_webhook() end}
     ]
 
