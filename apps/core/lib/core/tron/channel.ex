@@ -49,15 +49,7 @@ defmodule Core.Tron.Channel do
 
   @doc false
   def handle_call({:balance, address}, _from, channel) do
-    reply =
-      channel
-      |> Tron.Client.get_account(Tron.Account.new(address: address))
-      |> case do
-        {:ok, %Tron.Account{balance: balance}} -> {:ok, balance}
-        {:error, _} = error -> error
-      end
-
-    {:reply, reply, channel}
+    {:reply, Tron.Client.get_account(channel, Tron.Account.new(address: address)), channel}
   end
 
   def handle_call(:get_now_block, _from, channel) do
@@ -75,8 +67,10 @@ defmodule Core.Tron.Channel do
     {:reply, Tron.Client.broadcast_transaction(channel, transaction), channel}
   end
 
-  @spec try_connect([String.t()]) :: {:ok, GRPC.Channel.t()}
-  defp try_connect(nodes) do
+  @spec try_connect([String.t()], non_neg_integer) :: {:ok, GRPC.Channel.t()}
+  defp try_connect(nodes, attempts \\ 10)
+
+  defp try_connect(nodes, attempts) when attempts > 0 do
     node_address = Enum.random(nodes)
 
     case GRPC.Stub.connect(node_address) do
@@ -85,7 +79,7 @@ defmodule Core.Tron.Channel do
 
       failure ->
         Logger.error("failied to connect to #{node_address}:\n\n#{inspect(failure)}")
-        try_connect(nodes)
+        try_connect(nodes, attempts - 1)
     end
   end
 end

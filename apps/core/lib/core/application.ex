@@ -11,12 +11,14 @@ defmodule Core.Application do
            name: Storage}
         end,
         if Mix.env() in [:prod, :dev] do
-          :poolboy.child_spec(Core.Tron.Pool,
-            name: {:local, Core.Tron.Pool},
-            worker_module: Core.Tron.Channel,
-            size: 5,
-            max_overflow: 2
-          )
+          quote do
+            :poolboy.child_spec(Core.Tron.Pool,
+              name: {:local, Core.Tron.Pool},
+              worker_module: Core.Tron.Channel,
+              size: 5,
+              max_overflow: 2
+            )
+          end
         end,
         {Registry, keys: :unique, name: Core.Session.Registry},
         Core.Session.Supervisor
