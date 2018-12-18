@@ -3,9 +3,9 @@ defmodule Core do
   require Logger
   alias Core.Games.Yahtzee
 
-  defp try_reward(amount, to_address, attempts \\ 10)
+  defp try_reward(amount, to_address, attempts \\ 10, wait \\ 500)
 
-  defp try_reward(amount, to_address, attempts) when attempts > 0 do
+  defp try_reward(amount, to_address, attempts, wait) when attempts > 0 do
     case Core.Tron.reward(to_address, amount) do
       {:ok, _txid} = success ->
         success
@@ -17,13 +17,13 @@ defmodule Core do
         with message: #{inspect(message)}
         """)
 
-        :timer.sleep(500 * attempts)
+        :timer.sleep(wait)
 
-        try_reward(amount, to_address, attempts - 1)
+        try_reward(amount, to_address, attempts - 1, wait + 500)
     end
   end
 
-  defp try_reward(_reward, _to_address, _attempts) do
+  defp try_reward(_reward, _to_address, _attempts, _wait) do
     {:error, :give_up}
   end
 
