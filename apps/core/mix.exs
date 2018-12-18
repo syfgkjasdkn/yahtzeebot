@@ -29,7 +29,8 @@ defmodule Core.MixProject do
       {:tron, "~> 0.1-rc"},
       {:_storage, in_umbrella: true},
       {:gun, "~> 1.3.0"},
-      {:rexbug, "~> 1.0"}
+      {:rexbug, "~> 1.0"},
+      {:poolboy, "~> 1.5"}
     ]
   end
 end
