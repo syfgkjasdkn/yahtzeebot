@@ -4,9 +4,7 @@ defmodule Core.Tron.TronAdapter do
 
   @impl true
   def balance(<<address::21-bytes>>) do
-    Core.Tron.channel()
-    |> Tron.Client.get_account(Tron.Account.new(address: address))
-    |> case do
+    case Core.Tron.Pool.balance(address) do
       {:ok, %Tron.Account{balance: balance}} -> {:ok, balance}
       {:error, _} = error -> error
     end
@@ -17,13 +15,13 @@ defmodule Core.Tron.TronAdapter do
     Core.Tron.transfer(
       amount * 1_000_000,
       to_address,
-      Core.Tron.privkey()
+      Application.get_env(:core, :privkey)
     )
   end
 
   @impl true
   def send_transaction(%Tron.Transaction{} = transaction) do
-    Tron.Client.broadcast_transaction(Core.Tron.channel(), transaction)
+    Core.Tron.Pool.broadcast_transaction(transaction)
   end
 
   @impl true
@@ -40,9 +38,7 @@ defmodule Core.Tron.TronAdapter do
   end
 
   def _lookup_transaction(<<txid::32-bytes>>, attempts, wait) do
-    Core.Tron.channel()
-    |> Tron.Client.get_transaction_by_id(Google.Protobuf.BytesValue.new(value: txid))
-    |> case do
+    case Core.Tron.Pool.get_transaction_by_id(txid) do
       {:ok, %Tron.Transaction{raw_data: nil, ret: [], signature: []}} ->
         :timer.sleep(wait)
         _lookup_transaction(txid, attempts - 1, wait + 100)

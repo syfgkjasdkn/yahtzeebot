@@ -2,39 +2,9 @@ defmodule Core.Tron do
   @moduledoc """
   Some helper functions to interact with TRON
   """
-
   require Logger
-  require Record
-  Record.defrecordp(:state, [:channel, :privkey])
-
-  @typep state :: record(:state, channel: GRPC.Channel.t(), privkey: Tron.privkey())
 
   @adapter Application.get_env(:core, :tron_adapter) || raise("need core.tron_adapter")
-
-  def adapter do
-    @adapter
-  end
-
-  # TODO maybe use a pool of channels instead of a single genserver
-  # revisit if any bottlenecks start to appear
-  use GenServer
-
-  @doc false
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
-  end
-
-  @doc false
-  @spec init(Keyword.t()) :: {:ok, state}
-  def init(opts) do
-    privkey = opts[:privkey] || raise("need :privkey")
-
-    # check here so that it doesn't fail in handle_info
-    Application.get_env(:core, :grpc_nodes) || raise("need core.grpc_nodes")
-
-    send(self(), :connect)
-    {:ok, state(privkey: privkey)}
-  end
 
   @doc "Fetch current balance for an address"
   @spec balance(Tron.address()) ::
@@ -78,9 +48,7 @@ defmodule Core.Tron do
 
   @spec latest_block :: Tron.BlockExtention.t()
   def latest_block do
-    channel()
-    |> Tron.Client.get_now_block2(Tron.EmptyMessage.new())
-    |> case do
+    case Core.Tron.Pool.get_now_block() do
       # TODO can it fail?
       {:ok,
        %Tron.BlockExtention{
@@ -149,16 +117,12 @@ defmodule Core.Tron do
 
     from_address = Tron.address(privkey)
 
-    transfer_transaction = transfer_transaction(from_address, to_address, amount)
-
     signed_transaction =
-      transfer_transaction
+      transfer_transaction(from_address, to_address, amount)
       |> Tron.set_reference(block_header_raw)
       |> Tron.sign_transaction(privkey)
 
-    channel()
-    |> Tron.Client.broadcast_transaction(signed_transaction)
-    |> case do
+    case Core.Tron.Pool.broadcast_transaction(signed_transaction) do
       {:ok, %Tron.Return{code: 0, result: true}} ->
         {:ok, txid_base16(signed_transaction)}
 
@@ -175,77 +139,5 @@ defmodule Core.Tron do
 
   def tronscan_transaction_link(txid_base16) do
     "https://tronscan.org/#/transaction/#{txid_base16}"
-  end
-
-  @doc false
-  @spec channel :: GRPC.Channel.t()
-  def channel do
-    GenServer.call(__MODULE__, :channel)
-  end
-
-  # TODO do this in the server process or trnasfer the ownership
-  @spec reconnect_to_address(String.t()) :: {:ok, GRPC.Channel.t()} | {:error, any}
-  def reconnect_to_address(address) do
-    case GRPC.Stub.connect(address) do
-      {:ok, channel} = reply ->
-        :ok = GenServer.call(__MODULE__, {:set_channel, channel})
-        reply
-
-      {:error, _} = error ->
-        error
-    end
-  end
-
-  @doc false
-  @spec privkey :: Tron.private_key()
-  def privkey do
-    GenServer.call(__MODULE__, :privkey)
-  end
-
-  @doc false
-  def handle_call(message, from, state)
-
-  @spec handle_call(:channel, GenServer.from(), state) :: {:reply, GRPC.Channel.t(), state}
-  def handle_call(:channel, _from, state(channel: channel) = state) do
-    {:reply, channel, state}
-  end
-
-  @spec handle_call(:privkey, GenServer.from(), state) :: {:reply, Tron.private_key(), state}
-  def handle_call(:privkey, _from, state(privkey: privkey) = state) do
-    {:reply, privkey, state}
-  end
-
-  def handle_call({:set_channel, channel}, _from, state) do
-    {:reply, :ok, state(state, channel: channel)}
-  end
-
-  @doc false
-  def handle_info(message, state)
-
-  @spec handle_info(:connect, state) :: {:noreply, state}
-  def handle_info(:connect, state) do
-    nodes = Application.get_env(:core, :grpc_nodes) || raise("need core.grpc_nodes")
-    {:ok, channel} = try_connect(nodes)
-    {:noreply, state(state, channel: channel)}
-  end
-
-  def handle_info({:gun_down, _pid, :http2, reason, _, _}, state)
-      when reason in [:closed, :normal] do
-    {:noreply, state}
-  end
-
-  def handle_info({:gun_up, _pid, :http2}, state) do
-    {:noreply, state}
-  end
-
-  defp try_connect([node_address | rest]) do
-    case GRPC.Stub.connect(node_address) do
-      {:ok, _channel} = success ->
-        success
-
-      failure ->
-        Logger.error("failied to connect to #{node_address}:\n\n#{inspect(failure)}")
-        try_connect(rest)
-    end
   end
 end
