@@ -3,6 +3,7 @@
 # we don't need these when starting a node for remote console
 # TODO find a simpler way
 
+export POOL_SIZE_CAP=0
 export PUBLIC_IP=0
 export WEB_PORT=0
 export BOT_TRON_ADDRESS=""

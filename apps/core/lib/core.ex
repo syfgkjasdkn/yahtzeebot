@@ -156,6 +156,11 @@ defmodule Core do
     Storage.set_roll_pic(bot_id, file_id)
   end
 
+  @spec pool_size_cap :: pos_integer
+  def pool_size_cap do
+    Application.get_env(:core, :pool_size_cap) || raise("need core.pool_size_cap to be set")
+  end
+
   @spec auth_tdlib(String.t()) :: any
   def auth_tdlib(code) do
     {mod, fun, args} =
@@ -205,7 +210,22 @@ defmodule Core do
         tipper_id
       ) do
     :ok = Core.Session.set_seedit_address(tipper_id, tipper_address)
-    :ok = Storage.change_pool_size(div(amount, 1_000_000))
+
+    pool_size_change = div(amount, 1_000_000)
+    pool_size = Storage.pool_size()
+
+    :ok =
+      cond do
+        pool_size + pool_size_change < pool_size_cap() ->
+          Storage.change_pool_size(pool_size_change)
+
+        pool_size + pool_size_change == pool_size_cap() ->
+          :ok
+
+        true ->
+          Storage.change_pool_size(pool_size_cap() - pool_size)
+      end
+
     prev_credit = Core.Session.credit(tipper_id) * 1_000_000
     total_amount = prev_credit + amount
 
