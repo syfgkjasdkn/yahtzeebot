@@ -231,4 +231,33 @@ defmodule CoreTest do
       end)
     end
   end
+
+  test "pool_size_cap" do
+    assert 1_000_000 == Core.pool_size_cap()
+
+    :ok = Application.put_env(:core, :pool_size_cap, 1000)
+
+    assert 1000 == Core.pool_size_cap()
+    assert 0 == Core.pool_size()
+
+    tipper_id = 1_223_432_435
+
+    txid = Base.encode16("trx100", case: :lower)
+    assert {:ok, _roll_count, 100} = Core.process_tip(tipper_id, txid)
+    assert 100 == Core.pool_size()
+
+    txid = Base.encode16("trx850", case: :lower)
+    assert {:ok, _roll_count, 950} = Core.process_tip(tipper_id, txid)
+    assert 950 == Core.pool_size()
+
+    txid = Base.encode16("trx70", case: :lower)
+    assert {:ok, _roll_count, 1000} = Core.process_tip(tipper_id, txid)
+    assert 1000 == Core.pool_size()
+
+    txid = Base.encode16("trx700", case: :lower)
+    assert {:ok, _roll_count, 1000} = Core.process_tip(tipper_id, txid)
+    assert 1000 == Core.pool_size()
+
+    :ok = Application.put_env(:core, :pool_size_cap, 1_000_000)
+  end
 end
