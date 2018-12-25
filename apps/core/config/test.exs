@@ -10,4 +10,5 @@ config :core,
   reward_for_four_of_kind: 400,
   reward_for_large_straight: 200,
   admin_ids: [666, 777],
-  grpc_nodes: ["35.180.51.163:50051"]
+  grpc_nodes: ["35.180.51.163:50051"],
+  pool_size_cap: 1_000_000
