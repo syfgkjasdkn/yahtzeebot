@@ -197,7 +197,7 @@ defmodule UBot do
   end
 
   defp _tip?(text) do
-    String.contains?(text, "tipped")
+    String.contains?(text, ["tipped", "tipping"])
   end
 
   defp _extract_tipper_name(
