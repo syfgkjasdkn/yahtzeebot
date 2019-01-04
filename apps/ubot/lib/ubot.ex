@@ -96,11 +96,47 @@ defmodule UBot do
           _handle_message(message, our_bot_id)
           state
 
+        %Object.UpdateMessageContent{} ->
+          _handle_message_update(message, our_bot_id)
+          state
+
         _message ->
           state
       end
 
     {:noreply, state}
+  end
+
+  # TODO verify that the message is from seeditbot
+  defp _handle_message_update(
+         %Object.UpdateMessageContent{
+           chat_id: chat_id,
+           new_content: %Object.MessageText{
+             text: %TDLib.Object.FormattedText{entities: entities, text: text}
+           }
+         },
+         our_bot_id
+       ) do
+    if chat_id in tracked_chat_ids() do
+      if _tip?(text) do
+        if txid = _extract_txid(entities) do
+          case _extract_tip_participants(entities) do
+            [tipper_id, ^our_bot_id] ->
+              username = _extract_tipper_name(entities, text)
+
+              # TODO
+              spawn(fn ->
+                _process_tip(tipper_id, username, chat_id, txid)
+              end)
+
+            _other ->
+              nil
+          end
+        else
+          Logger.error(~s[couldn't extract txid from "#{text}"])
+        end
+      end
+    end
   end
 
   defp _handle_message(
