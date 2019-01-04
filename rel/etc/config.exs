@@ -49,7 +49,7 @@ config :core,
   reward_for_four_of_kind: env!.("REWARD_FOR_FOUR_OF_KIND", :integer),
   reward_for_large_straight: env!.("REWARD_FOR_LARGE_STRAIGHT", :integer),
   admin_ids: env!.("ADMIN_IDS", {:list, :integer}),
-  pool_size_cap: env!("POOL_SIZE_CAP", :integer)
+  pool_size_cap: env!.("POOL_SIZE_CAP", :integer)
 
 config :web,
   port: env!.("WEB_PORT", :integer),
