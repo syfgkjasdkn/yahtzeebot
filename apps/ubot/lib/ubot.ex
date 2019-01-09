@@ -2,6 +2,7 @@ defmodule UBot do
   @moduledoc false
 
   alias TDLib.{Method, Object}
+  alias UBot.PendingTips
   use GenServer
 
   @session :ubot2
@@ -107,17 +108,17 @@ defmodule UBot do
     {:noreply, state}
   end
 
-  # TODO verify that the message is from seeditbot
   defp _handle_message_update(
          %Object.UpdateMessageContent{
            chat_id: chat_id,
+           message_id: message_id,
            new_content: %Object.MessageText{
              text: %TDLib.Object.FormattedText{entities: entities, text: text}
            }
          },
          our_bot_id
        ) do
-    if chat_id in tracked_chat_ids() do
+    if chat_id in tracked_chat_ids() and PendingTips.pending?(message_id) do
       if _tip?(text) do
         if txid = _extract_txid(entities) do
           case _extract_tip_participants(entities) do
@@ -160,10 +161,9 @@ defmodule UBot do
   # TODO refactor, don't rely on message structure
   defp _do_handle_message(
          %Object.Message{
-           chat_id: chat_id,
+           id: message_id,
            content: %Object.MessageText{
              text: %Object.FormattedText{
-               entities: entities,
                text: text
              }
            },
@@ -172,22 +172,7 @@ defmodule UBot do
          our_bot_id
        ) do
     if _tip?(text) do
-      if txid = _extract_txid(entities) do
-        case _extract_tip_participants(entities) do
-          [tipper_id, ^our_bot_id] ->
-            username = _extract_tipper_name(entities, text)
-
-            # TODO
-            spawn(fn ->
-              _process_tip(tipper_id, username, chat_id, txid)
-            end)
-
-          _other ->
-            nil
-        end
-      else
-        Logger.error(~s[couldn't extract txid from "#{text}"])
-      end
+      PendingTips.wait_for_update(message_id)
     end
   end
 
