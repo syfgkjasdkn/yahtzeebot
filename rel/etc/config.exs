@@ -37,6 +37,8 @@ env! = fn var, type ->
   end
 end
 
+config :kernel, inet_dist_use_interface: {127, 0, 0, 1}
+
 config :core,
   db_path: env!.("DB_PATH", :string),
   address: env!.("BOT_TRON_ADDRESS", :string),

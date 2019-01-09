@@ -2,36 +2,33 @@ defmodule Core.Application do
   @moduledoc false
   use Application
 
-  children =
-    Enum.reject(
-      [
-        if Mix.env() in [:prod, :dev] do
-          {Storage,
-           path: quote(do: Application.get_env(:core, :db_path) || raise("need core.db_path")),
-           name: Storage}
-        end,
-        if Mix.env() in [:prod, :dev] do
-          quote do
-            :poolboy.child_spec(Core.Tron.Pool,
-              name: {:local, Core.Tron.Pool},
-              worker_module: Core.Tron.Channel,
-              size: 5,
-              max_overflow: 2
-            )
-          end
-        end,
-        {Registry, keys: :unique, name: Core.Session.Registry},
-        Core.Session.Supervisor
-      ],
-      &is_nil/1
-    )
-
   def start(_type, _args) do
-    unless unquote(Mix.env() == :test) do
+    config = Application.get_all_env(:core)
+
+    if config[:ensure_loaded_env?] do
       ensure_loaded_env!()
     end
 
-    children = unquote(children)
+    maybe_children = [
+      if db_path = config[:db_path] do
+        {Storage, path: db_path, name: Storage}
+      end,
+      if config[:start_tron_pool?] do
+        quote do
+          :poolboy.child_spec(Core.Tron.Pool,
+            name: {:local, Core.Tron.Pool},
+            worker_module: Core.Tron.Channel,
+            size: 5,
+            max_overflow: 2
+          )
+        end
+      end,
+      {Registry, keys: :unique, name: Core.Session.Registry},
+      Core.Session.Supervisor
+    ]
+
+    children = Enum.reject(maybe_children, &is_nil/1)
+
     opts = [strategy: :one_for_one, name: __MODULE__.Supervisor]
     Supervisor.start_link(children, opts)
   end
