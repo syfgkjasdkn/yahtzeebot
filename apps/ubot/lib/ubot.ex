@@ -2,6 +2,7 @@ defmodule UBot do
   @moduledoc false
 
   alias TDLib.{Method, Object}
+  alias UBot.PendingTips
   use GenServer
 
   @session :ubot2
@@ -93,7 +94,11 @@ defmodule UBot do
           end
 
         %Object.UpdateNewMessage{message: message} ->
-          _handle_message(message, our_bot_id)
+          _handle_message(message)
+          state
+
+        %Object.UpdateMessageContent{} ->
+          _handle_message_update(message, our_bot_id)
           state
 
         _message ->
@@ -103,59 +108,59 @@ defmodule UBot do
     {:noreply, state}
   end
 
-  defp _handle_message(
-         %Object.Message{
+  defp _handle_message_update(
+         %Object.UpdateMessageContent{
            chat_id: chat_id,
-           is_outgoing: is_outgoing
-         } = message,
-         our_bot_id
-       ) do
-    if chat_id in tracked_chat_ids() do
-      unless is_outgoing do
-        _do_handle_message(message, our_bot_id)
-      end
-    end
-  end
-
-  defp _handle_message(_message, _our_bot_id) do
-    :ignore
-  end
-
-  # TODO refactor, don't rely on message structure
-  defp _do_handle_message(
-         %Object.Message{
-           chat_id: chat_id,
-           content: %Object.MessageText{
-             text: %Object.FormattedText{
-               entities: entities,
-               text: text
-             }
-           },
-           sender_user_id: @seeditbot_id
+           message_id: message_id,
+           new_content: %Object.MessageText{
+             text: %TDLib.Object.FormattedText{entities: entities, text: text}
+           }
          },
          our_bot_id
        ) do
-    if _tip?(text) do
-      if txid = _extract_txid(entities) do
-        case _extract_tip_participants(entities) do
-          [tipper_id, ^our_bot_id] ->
-            username = _extract_tipper_name(entities, text)
+    if chat_id in tracked_chat_ids() and PendingTips.pending?(message_id) do
+      if _tipped?(text) do
+        if txid = _extract_txid(entities) do
+          case _extract_tip_participants(entities) do
+            [tipper_id, ^our_bot_id] ->
+              username = _extract_tipper_name(entities, text)
 
-            # TODO
-            spawn(fn ->
-              _process_tip(tipper_id, username, chat_id, txid)
-            end)
+              # TODO
+              spawn(fn ->
+                _process_tip(tipper_id, username, chat_id, txid)
+              end)
 
-          _other ->
-            nil
+            _other ->
+              :ignore
+          end
+        else
+          Logger.error(~s[couldn't extract txid from "#{text}"])
         end
-      else
-        Logger.error(~s[couldn't extract txid from "#{text}"])
       end
-    end
+    end || :ignore
   end
 
-  defp _do_handle_message(_message, _our_bot_id) do
+  defp _handle_message(%Object.Message{
+         id: message_id,
+         chat_id: chat_id,
+         is_outgoing: is_outgoing,
+         content: %Object.MessageText{
+           text: %Object.FormattedText{
+             text: text
+           }
+         },
+         sender_user_id: @seeditbot_id
+       }) do
+    if chat_id in tracked_chat_ids() do
+      unless is_outgoing do
+        if _tipping?(text) do
+          PendingTips.wait_for_update(message_id)
+        end
+      end
+    end || :ignore
+  end
+
+  defp _handle_message(_message) do
     :ignore
   end
 
@@ -196,8 +201,12 @@ defmodule UBot do
     Application.get_env(:ubot, :tracked_chat_ids) || raise("need ubot.tracked_chat_ids")
   end
 
-  defp _tip?(text) do
-    String.contains?(text, ["tipped", "tipping"])
+  defp _tipping?(text) do
+    String.contains?(text, "tipping")
+  end
+
+  defp _tipped?(text) do
+    String.contains?(text, "tipped")
   end
 
   defp _extract_tipper_name(

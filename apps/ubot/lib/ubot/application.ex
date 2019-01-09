@@ -8,7 +8,8 @@ defmodule UBot.Application do
     maybe_children = [
       if config[:start_ubot?] do
         {UBot, _opts([:api_id, :api_hash, :phone_number, :bot_id, :tdlib_database_directory])}
-      end
+      end,
+      UBot.PendingTips
     ]
 
     children = Enum.reject(maybe_children, &is_nil/1)
