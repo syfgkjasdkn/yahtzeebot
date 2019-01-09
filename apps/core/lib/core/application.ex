@@ -14,14 +14,12 @@ defmodule Core.Application do
         {Storage, path: db_path, name: Storage}
       end,
       if config[:start_tron_pool?] do
-        quote do
-          :poolboy.child_spec(Core.Tron.Pool,
-            name: {:local, Core.Tron.Pool},
-            worker_module: Core.Tron.Channel,
-            size: 5,
-            max_overflow: 2
-          )
-        end
+        :poolboy.child_spec(Core.Tron.Pool,
+          name: {:local, Core.Tron.Pool},
+          worker_module: Core.Tron.Channel,
+          size: 5,
+          max_overflow: 2
+        )
       end,
       {Registry, keys: :unique, name: Core.Session.Registry},
       Core.Session.Supervisor
