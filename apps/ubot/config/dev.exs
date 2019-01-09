@@ -5,4 +5,5 @@ config :ubot,
   api_hash: System.get_env("TG_API_HASH") || raise("need TG_API_HASH"),
   phone_number: System.get_env("TG_PHONE_NUMBER") || raise("need TG_PHONE_NUMBER"),
   start_ubot?: true,
+  load_tracked_chat_ids?: true,
   tdlib_database_directory: "/tmp/tdlib"
