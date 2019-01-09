@@ -94,7 +94,7 @@ defmodule UBot do
           end
 
         %Object.UpdateNewMessage{message: message} ->
-          _handle_message(message, our_bot_id)
+          _handle_message(message)
           state
 
         %Object.UpdateMessageContent{} ->
@@ -119,7 +119,7 @@ defmodule UBot do
          our_bot_id
        ) do
     if chat_id in tracked_chat_ids() and PendingTips.pending?(message_id) do
-      if _tip?(text) do
+      if _tipped?(text) do
         if txid = _extract_txid(entities) do
           case _extract_tip_participants(entities) do
             [tipper_id, ^our_bot_id] ->
@@ -131,52 +131,36 @@ defmodule UBot do
               end)
 
             _other ->
-              nil
+              :ignore
           end
         else
           Logger.error(~s[couldn't extract txid from "#{text}"])
         end
       end
-    end
+    end || :ignore
   end
 
-  defp _handle_message(
-         %Object.Message{
-           chat_id: chat_id,
-           is_outgoing: is_outgoing
-         } = message,
-         our_bot_id
-       ) do
+  defp _handle_message(%Object.Message{
+         id: message_id,
+         chat_id: chat_id,
+         is_outgoing: is_outgoing,
+         content: %Object.MessageText{
+           text: %Object.FormattedText{
+             text: text
+           }
+         },
+         sender_user_id: @seeditbot_id
+       }) do
     if chat_id in tracked_chat_ids() do
       unless is_outgoing do
-        _do_handle_message(message, our_bot_id)
+        if _tipping?(text) do
+          PendingTips.wait_for_update(message_id)
+        end
       end
-    end
+    end || :ignore
   end
 
-  defp _handle_message(_message, _our_bot_id) do
-    :ignore
-  end
-
-  # TODO refactor, don't rely on message structure
-  defp _do_handle_message(
-         %Object.Message{
-           id: message_id,
-           content: %Object.MessageText{
-             text: %Object.FormattedText{
-               text: text
-             }
-           },
-           sender_user_id: @seeditbot_id
-         },
-         our_bot_id
-       ) do
-    if _tip?(text) do
-      PendingTips.wait_for_update(message_id)
-    end
-  end
-
-  defp _do_handle_message(_message, _our_bot_id) do
+  defp _handle_message(_message) do
     :ignore
   end
 
@@ -217,8 +201,12 @@ defmodule UBot do
     Application.get_env(:ubot, :tracked_chat_ids) || raise("need ubot.tracked_chat_ids")
   end
 
-  defp _tip?(text) do
-    String.contains?(text, ["tipped", "tipping"])
+  defp _tipping?(text) do
+    String.contains?(text, "tipping")
+  end
+
+  defp _tipped?(text) do
+    String.contains?(text, "tipped")
   end
 
   defp _extract_tipper_name(
