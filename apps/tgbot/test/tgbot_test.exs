@@ -211,6 +211,34 @@ defmodule TGBotTest do
     end
   end
 
+  describe "/message" do
+    test "from admin" do
+      telegram_id = 666
+
+      send_public_message(telegram_id, "/message this should be repeated")
+
+      assert_receive {:message,
+                      telegram_id: ^telegram_id, text: "this should be repeated", opts: []}
+
+      send_public_message(telegram_id, "/message@some_bot this also should be repeated")
+
+      assert_receive {:message,
+                      telegram_id: ^telegram_id, text: "this also should be repeated", opts: []}
+    end
+
+    test "not from admin" do
+      telegram_id = 664
+
+      send_public_message(telegram_id, "/message this shouldn't be repeated")
+
+      refute_receive {:message, _anything}
+
+      send_public_message(telegram_id, "/message@some_bot this shouldn't be repeated either")
+
+      refute_receive {:message, _anything}
+    end
+  end
+
   test "set_webhook" do
     TGBot.set_webhook(url: "https://some.website/tgbot", certificate: "priv/somekey.pem")
 
