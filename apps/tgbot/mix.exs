@@ -27,7 +27,7 @@ defmodule TGBot.MixProject do
     [
       {:nadia, "~> 0.4"},
       {:core, in_umbrella: true},
-      {:httpoison, "~> 1.4", override: true},
+      {:httpoison, "~> 1.5", override: true},
       {:mox, "~> 0.4", only: :test}
     ]
   end
