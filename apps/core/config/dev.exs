@@ -16,5 +16,7 @@ config :core,
   rolls_to_trx_ratio: {3, 100},
   reward_for_four_of_kind: 400,
   reward_for_large_straight: 200,
-  admin_ids: [],
-  pool_size_cap: 1_000_000
+  admin_ids: [113_011],
+  pool_size_cap: 1_000_000,
+  start_tron_pool?: true,
+  ensure_loaded_env?: true
