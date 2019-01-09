@@ -136,6 +136,26 @@ defmodule TGBot do
     """)
   end
 
+  defp handle_public_text("/message " <> text, %{
+         "chat" => %{"id" => chat_id},
+         "from" => %{"id" => from_id}
+       }) do
+    if Core.admin?(from_id) do
+      @adapter.send_message(chat_id, text)
+    end
+  end
+
+  defp handle_public_text("/message@" <> text, %{
+         "chat" => %{"id" => chat_id},
+         "from" => %{"id" => from_id}
+       }) do
+    [_, text] = :binary.split(text, " ")
+
+    if Core.admin?(from_id) do
+      @adapter.send_message(chat_id, text)
+    end
+  end
+
   defp handle_public_text(_other, _message) do
     :ignore
   end
