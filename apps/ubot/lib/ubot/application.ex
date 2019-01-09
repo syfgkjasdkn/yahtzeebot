@@ -2,33 +2,25 @@ defmodule UBot.Application do
   @moduledoc false
   use Application
 
-  children =
-    Enum.reject(
-      [
-        unless(Mix.env() == :test,
-          do:
-            {UBot,
-             quote(
-               do: _opts([:api_id, :api_hash, :phone_number, :bot_id, :tdlib_database_directory])
-             )}
-        )
-      ],
-      &is_nil/1
-    )
-
   def start(_type, _args) do
-    children = unquote(children)
+    config = Application.get_all_env(:ubot)
+
+    maybe_children = [
+      if config[:start_ubot?] do
+        {UBot, _opts([:api_id, :api_hash, :phone_number, :bot_id, :tdlib_database_directory])}
+      end
+    ]
+
+    children = Enum.reject(maybe_children, &is_nil/1)
+
     opts = [strategy: :one_for_one, name: UBot.Supervisor]
     Application.put_env(:core, :auth_tdlib_mfa, {UBot, :auth, []})
 
-    # TODO maybe move to ubot.ex
-    unless unquote(Mix.env()) == :test do
+    if config[:load_tracked_chat_ids?] do
       Application.put_env(
         :ubot,
         :tracked_chat_ids,
-        Storage.initialized_rooms(
-          Application.get_env(:ubot, :phone_number) || raise("need ubot.phone_number")
-        )
+        Storage.initialized_rooms(config[:phone_number] || raise("need ubot.phone_number"))
       )
     end
 

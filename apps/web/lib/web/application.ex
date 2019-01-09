@@ -4,45 +4,50 @@ defmodule Web.Application do
   require Logger
 
   def start(_type, _args) do
-    port = Application.get_env(:web, :port) || raise("need web.port")
+    config = Application.get_all_env(:web)
+    port = config[:port] || raise("need web.port")
 
-    if unquote(Mix.env() == :prod) do
-      if public_ip = Application.get_env(:web, :public_ip) do
+    if config[:generate_certs?] do
+      if public_ip = config[:public_ip] do
         generate_certs(public_ip)
+      else
+        Logger.warn("couldn't find web.public_ip, skipping certs generation")
       end
     end
 
-    children = [
+    maybe_children = [
       {Plug.Cowboy,
        scheme: Application.get_env(:web, :scheme, :https),
        plug: Web.Router,
-       options: [port: port] ++ Application.get_env(:web, :options, [])},
-      {Task, fn -> maybe_set_webhook() end}
+       options: [port: port] ++ (config[:options] || [])},
+      if config[:set_webhook?] do
+        if public_ip = config[:public_ip] do
+          {Task, fn -> set_webhook(public_ip) end}
+        else
+          Logger.warn("couldn't find web.public_ip, skipping webhook setup")
+          nil
+        end
+      end
     ]
+
+    children = Enum.reject(maybe_children, &is_nil/1)
 
     opts = [strategy: :one_for_one, name: Web.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
   @doc false
-  def maybe_set_webhook do
-    # TODO simplify
-    if unquote(Mix.env() == :prod) do
-      if public_ip = Application.get_env(:web, :public_ip) do
-        port = :ranch.get_port(Web.Router.HTTPS) || raise("failed to get https port")
-        url = "https://#{public_ip}:#{port}/tgbot"
+  def set_webhook(public_ip) do
+    port = :ranch.get_port(Web.Router.HTTPS) || raise("failed to get https port")
+    url = "https://#{public_ip}:#{port}/tgbot"
 
-        :ok =
-          TGBot.set_webhook(
-            url: url,
-            certificate: Path.join(Application.app_dir(:web), "priv/server.pem")
-          )
+    :ok =
+      TGBot.set_webhook(
+        url: url,
+        certificate: Path.join(Application.app_dir(:web), "priv/server.pem")
+      )
 
-        Logger.info("set webhook to #{url}")
-      else
-        Logger.warn("couldn't find web.public_ip env var, skipping webhook setup")
-      end
-    end
+    Logger.info("set webhook to #{url}")
   end
 
   @doc false
