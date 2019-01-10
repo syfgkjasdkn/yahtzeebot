@@ -47,7 +47,7 @@ defmodule CoreTest do
                  tipper_id
                )
 
-      assert {:error, :invalid_contract} =
+      assert {:error, :invalid_token} =
                Core.process_transfer(
                  %Tron.TransferAssetContract{amount: 100_000_000, asset_name: "SomeToken"},
                  tipper_id
@@ -206,19 +206,19 @@ defmodule CoreTest do
       Enum.reduce(1..10000, Storage.pool_size(), fn _, prev_pool_size ->
         case Core.roll(tipper_id) do
           {:ok, {:win, :large_straight, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
-            assert_receive {:reward, address: ^winner_address, amount: 200}
+            assert_receive {:reward, token: "TRX", address: ^winner_address, amount: 200}
             pool_size = Storage.pool_size()
             assert pool_size == prev_pool_size - 200
             pool_size
 
           {:ok, {:win, :four_of_kind, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
-            assert_receive {:reward, address: ^winner_address, amount: 400}
+            assert_receive {:reward, token: "TRX", address: ^winner_address, amount: 400}
             pool_size = Storage.pool_size()
             assert pool_size == prev_pool_size - 400
             pool_size
 
           {:ok, {:win, :pool, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
-            assert_receive {:reward, address: ^winner_address, amount: amount}
+            assert_receive {:reward, token: "TRX", address: ^winner_address, amount: amount}
             assert_in_delta amount, 0.8 * prev_pool_size, 10
             Storage.change_pool_size(+10000)
             Storage.pool_size()

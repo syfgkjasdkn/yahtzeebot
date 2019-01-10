@@ -47,11 +47,12 @@ config :core,
   grpc_nodes: env!.("GRPC_NODES", {:list, :string}),
   winning_player_pct: env!.("WINNING_PLAYER_PCT", :float),
   house_pct: env!.("HOUSE_PCT", :float),
-  rolls_to_trx_ratio: env!.("ROLLS_TO_TRX_RATIO", :ratio),
+  rolls_to_token_ratio: env!.("ROLLS_TO_TOKEN_RATIO", :ratio),
   reward_for_four_of_kind: env!.("REWARD_FOR_FOUR_OF_KIND", :integer),
   reward_for_large_straight: env!.("REWARD_FOR_LARGE_STRAIGHT", :integer),
   admin_ids: env!.("ADMIN_IDS", {:list, :integer}),
-  pool_size_cap: env!.("POOL_SIZE_CAP", :integer)
+  pool_size_cap: env!.("POOL_SIZE_CAP", :integer),
+  token: env!.("TOKEN", :string)
 
 config :web,
   port: env!.("WEB_PORT", :integer),

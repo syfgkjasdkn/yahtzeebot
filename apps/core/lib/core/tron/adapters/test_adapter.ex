@@ -7,8 +7,8 @@ defmodule Core.Tron.TestAdapter do
   end
 
   @impl true
-  def reward(address, amount) do
-    send(test_process(), {:reward, address: address, amount: amount})
+  def reward(token, address, amount) do
+    send(test_process(), {:reward, token: token, address: address, amount: amount})
     {:ok, "tx87q32oiualfjbasdlkjfbasm"}
   end
 

@@ -15,7 +15,8 @@ Environment=REWARDER_PRIVKEY=put_your_base16_encoded_privkey_here
 Environment=OWNERS_ADDRESS=... # where to send $HOUSE_PCT of the pool
 Environment=WINNING_PLAYER_PCT=0.8
 Environment=HOUSE_PCT=0.1
-Environment=ROLLS_TO_TRX_RATIO="3/100"
+Envitonment=TOKEN=TRX
+Environment=ROLLS_TO_TOKEN_RATIO="3/100"
 Environment=REWARD_FOR_FOUR_OF_KIND=400
 Environment=REWARD_FOR_LARGE_STRAIGHT=200
 Environment=POOL_SIZE_CAP=10000
