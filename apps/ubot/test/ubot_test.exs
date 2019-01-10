@@ -17,7 +17,7 @@ defmodule UbotTest do
       tipper_id = 12_341_234
       chat_id = -112_341_234_234
       tipper_username = "durov"
-      txid = Base.encode16("trx100", case: :lower)
+      txid = Base.encode16("TRX:100", case: :lower)
 
       UBot._process_tip(tipper_id, tipper_username, chat_id, txid)
 
@@ -53,7 +53,7 @@ defmodule UbotTest do
       chat_id = -112_34_234_234
       tipper_username = "durov"
 
-      txid = Base.encode16("trx70", case: :lower)
+      txid = Base.encode16("TRX:70", case: :lower)
       UBot._process_tip(tipper_id, tipper_username, chat_id, txid)
 
       assert_receive {:message,
@@ -69,7 +69,7 @@ defmodule UbotTest do
       assert 70 == Core.Session.credit(tipper_id)
       assert 70 == Core.pool_size()
 
-      txid = Base.encode16("trx35", case: :lower)
+      txid = Base.encode16("TRX:35", case: :lower)
       UBot._process_tip(tipper_id, tipper_username, chat_id, txid)
 
       assert_receive {:message,
