@@ -20,7 +20,7 @@ defmodule Core.Tron.TestAdapter do
 
   # TODO use mox
   @impl true
-  def lookup_transaction("trx" <> amount) do
+  def lookup_transaction("TRX:" <> amount) do
     amount = String.to_integer(amount) * 1_000_000
 
     transfer_contract =
@@ -31,6 +31,24 @@ defmodule Core.Tron.TestAdapter do
       )
 
     transfer_contract
+    |> Core.Tron.transaction_contract()
+    |> Core.Tron.transaction(DateTime.to_unix(DateTime.utc_now(), :millisecond))
+  end
+
+  def lookup_transaction(token_with_amount) do
+    [token, amount] = :binary.split(token_with_amount, ":")
+
+    amount = String.to_integer(amount)
+
+    transfer_asset_contract =
+      Core.Tron.transfer_asset_contract(
+        token,
+        :crypto.strong_rand_bytes(21),
+        <<1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21>>,
+        amount
+      )
+
+    transfer_asset_contract
     |> Core.Tron.transaction_contract()
     |> Core.Tron.transaction(DateTime.to_unix(DateTime.utc_now(), :millisecond))
   end

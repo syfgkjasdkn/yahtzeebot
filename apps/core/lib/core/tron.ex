@@ -78,7 +78,8 @@ defmodule Core.Tron do
   end
 
   @doc false
-  @spec transaction_contract(Tron.TransferContract.t()) :: Tron.Transaction.Contract.t()
+  @spec transaction_contract(Tron.TransferContract.t() | Tron.TransferAssetContract.t()) ::
+          Tron.Transaction.Contract.t()
   def transaction_contract(%Tron.TransferContract{} = contract) do
     Tron.Transaction.Contract.new(
       type: 1,
@@ -86,6 +87,17 @@ defmodule Core.Tron do
         Google.Protobuf.Any.new(
           value: Tron.TransferContract.encode(contract),
           type_url: "type.googleapis.com/protocol.TransferContract"
+        )
+    )
+  end
+
+  def transaction_contract(%Tron.TransferAssetContract{} = contract) do
+    Tron.Transaction.Contract.new(
+      type: 1,
+      parameter:
+        Google.Protobuf.Any.new(
+          value: Tron.TransferAssetContract.encode(contract),
+          type_url: "type.googleapis.com/protocol.TransferAssetContract"
         )
     )
   end

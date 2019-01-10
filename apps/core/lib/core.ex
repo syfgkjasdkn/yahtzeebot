@@ -214,9 +214,9 @@ defmodule Core do
         %Tron.TransferContract{amount: amount, owner_address: tipper_address},
         tipper_id
       ) do
-    if token() == "TRX" do
-      :ok = Core.Session.set_seedit_address(tipper_id, tipper_address)
+    :ok = Core.Session.set_seedit_address(tipper_id, tipper_address)
 
+    if token() == "TRX" do
       pool_size_change = div(amount, 1_000_000)
       pool_size = Storage.pool_size()
 
@@ -260,9 +260,9 @@ defmodule Core do
         },
         tipper_id
       ) do
-    if token() == asset_name do
-      :ok = Core.Session.set_seedit_address(tipper_id, tipper_address)
+    :ok = Core.Session.set_seedit_address(tipper_id, tipper_address)
 
+    if token() == asset_name do
       pool_size_change = amount
       pool_size = Storage.pool_size()
 
