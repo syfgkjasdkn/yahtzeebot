@@ -8,10 +8,15 @@ defmodule CoreTest do
     :ok
   end
 
-  describe "tip" do
+  describe "trx tip" do
+    setup do
+      assert "TRX" == Core.token()
+      :ok
+    end
+
     test "increases roll count" do
       tipper_id = 1234
-      txid = Base.encode16("trx100", case: :lower)
+      txid = Base.encode16("TRX:100", case: :lower)
 
       assert 0 == Core.Session.rolls_left(tipper_id)
 
@@ -47,9 +52,13 @@ defmodule CoreTest do
                  tipper_id
                )
 
-      assert {:error, :invalid_contract} =
+      assert {:error, :invalid_token} =
                Core.process_transfer(
-                 %Tron.TransferAssetContract{amount: 100_000_000, asset_name: "SomeToken"},
+                 %Tron.TransferAssetContract{
+                   amount: 100_000_000,
+                   asset_name: "SomeToken",
+                   owner_address: tipper_address
+                 },
                  tipper_id
                )
     end
@@ -71,7 +80,7 @@ defmodule CoreTest do
 
     test "increases pool size" do
       tipper_id = 1_223_435
-      txid = Base.encode16("trx100", case: :lower)
+      txid = Base.encode16("TRX:100", case: :lower)
 
       assert 0 == Core.pool_size()
 
@@ -110,6 +119,162 @@ defmodule CoreTest do
       assert {:ok, 3, 101} ==
                Core.process_transfer(
                  %Tron.TransferContract{amount: 20_000_000, owner_address: tipper_address},
+                 tipper_id
+               )
+
+      assert 3 == Core.Session.rolls_left(tipper_id)
+      assert 1 == Core.Session.credit(tipper_id)
+    end
+  end
+
+  describe "token tip" do
+    setup do
+      prev_token = Core.token()
+
+      :ok = Application.put_env(:core, :token, "SomeToken")
+
+      assert "SomeToken" == Core.token()
+
+      on_exit(fn ->
+        Application.put_env(:core, :token, prev_token)
+      end)
+    end
+
+    test "increases roll count" do
+      tipper_id = 1_223_441_322_734
+      txid = Base.encode16("SomeToken:100", case: :lower)
+
+      assert 0 == Core.Session.rolls_left(tipper_id)
+
+      assert {:ok, 3, _pool_size} = Core.process_tip(tipper_id, txid)
+      assert 3 == Core.Session.rolls_left(tipper_id)
+
+      assert {:ok, 6, _pool_size} = Core.process_tip(tipper_id, txid)
+      assert 6 == Core.Session.rolls_left(tipper_id)
+    end
+
+    test "persists seedit address" do
+      tipper_id = 123_345_234
+      tipper_address = :crypto.strong_rand_bytes(21)
+
+      refute Core.Session.seedit_address(tipper_id)
+
+      assert {:ok, _roll_count, _pool_size} =
+               Core.process_transfer(
+                 %Tron.TransferAssetContract{
+                   amount: 100,
+                   asset_name: "SomeToken",
+                   owner_address: tipper_address
+                 },
+                 tipper_id
+               )
+
+      assert tipper_address == Core.Session.seedit_address(tipper_id)
+    end
+
+    test "only accepts SomeToken" do
+      tipper_id = 122_311
+      tipper_address = :crypto.strong_rand_bytes(21)
+
+      assert {:ok, _roll_count, _pool_size} =
+               Core.process_transfer(
+                 %Tron.TransferAssetContract{
+                   amount: 100,
+                   asset_name: "SomeToken",
+                   owner_address: tipper_address
+                 },
+                 tipper_id
+               )
+
+      assert {:error, :invalid_token} =
+               Core.process_transfer(
+                 %Tron.TransferContract{amount: 100_000_000, owner_address: tipper_address},
+                 tipper_id
+               )
+
+      assert {:error, :invalid_token} =
+               Core.process_transfer(
+                 %Tron.TransferAssetContract{
+                   amount: 100,
+                   asset_name: "SomeOtherToken",
+                   owner_address: tipper_address
+                 },
+                 tipper_id
+               )
+    end
+
+    test "converts 100 SomeToken to 3 rolls" do
+      tipper_id = 2_435_332
+      tipper_address = :crypto.strong_rand_bytes(21)
+
+      assert 0 == Core.Session.rolls_left(tipper_id)
+
+      assert {:ok, 3, _pool_size} =
+               Core.process_transfer(
+                 %Tron.TransferAssetContract{
+                   amount: 100,
+                   owner_address: tipper_address,
+                   asset_name: "SomeToken"
+                 },
+                 tipper_id
+               )
+
+      assert 3 == Core.Session.rolls_left(tipper_id)
+    end
+
+    test "increases pool size" do
+      tipper_id = 12_232_335
+      txid = Base.encode16("SomeToken:100", case: :lower)
+
+      assert 0 == Core.pool_size()
+
+      assert {:ok, _roll_count, 100} = Core.process_tip(tipper_id, txid)
+      assert 100 == Core.pool_size()
+
+      assert {:ok, _roll_count, 200} = Core.process_tip(tipper_id, txid)
+      assert 200 == Core.pool_size()
+    end
+
+    test "carries SomeToken credit over on invalid SomeToken tip" do
+      tipper_id = 215_634
+      tipper_address = :crypto.strong_rand_bytes(21)
+
+      assert 0 == Core.Session.rolls_left(tipper_id)
+      assert 0 == Core.Session.credit(tipper_id)
+
+      assert {:ok, :credited, 1} ==
+               Core.process_transfer(
+                 %Tron.TransferAssetContract{
+                   amount: 1,
+                   asset_name: "SomeToken",
+                   owner_address: tipper_address
+                 },
+                 tipper_id
+               )
+
+      assert 0 == Core.Session.rolls_left(tipper_id)
+      assert 1 == Core.Session.credit(tipper_id)
+
+      assert {:ok, :credited, 81} ==
+               Core.process_transfer(
+                 %Tron.TransferAssetContract{
+                   amount: 80,
+                   asset_name: "SomeToken",
+                   owner_address: tipper_address
+                 },
+                 tipper_id
+               )
+
+      assert 0 == Core.Session.rolls_left(tipper_id)
+      assert 81 == Core.Session.credit(tipper_id)
+
+      assert {:ok, 3, 101} ==
+               Core.process_transfer(
+                 %Tron.TransferAssetContract{
+                   amount: 20,
+                   asset_name: "SomeToken",
+                   owner_address: tipper_address
+                 },
                  tipper_id
                )
 
@@ -206,19 +371,66 @@ defmodule CoreTest do
       Enum.reduce(1..10000, Storage.pool_size(), fn _, prev_pool_size ->
         case Core.roll(tipper_id) do
           {:ok, {:win, :large_straight, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
-            assert_receive {:reward, address: ^winner_address, amount: 200}
+            assert_receive {:reward, token: "TRX", address: ^winner_address, amount: 200}
             pool_size = Storage.pool_size()
             assert pool_size == prev_pool_size - 200
             pool_size
 
           {:ok, {:win, :four_of_kind, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
-            assert_receive {:reward, address: ^winner_address, amount: 400}
+            assert_receive {:reward, token: "TRX", address: ^winner_address, amount: 400}
             pool_size = Storage.pool_size()
             assert pool_size == prev_pool_size - 400
             pool_size
 
           {:ok, {:win, :pool, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
-            assert_receive {:reward, address: ^winner_address, amount: amount}
+            assert_receive {:reward, token: "TRX", address: ^winner_address, amount: amount}
+            assert_in_delta amount, 0.8 * prev_pool_size, 10
+            Storage.change_pool_size(+10000)
+            Storage.pool_size()
+
+          _other ->
+            pool_size = Storage.pool_size()
+            assert pool_size == prev_pool_size
+            pool_size
+        end
+      end)
+    end
+
+    test "sends token reward on win" do
+      prev_token = Core.token()
+
+      :ok = Application.put_env(:core, :token, "SomeToken")
+
+      assert "SomeToken" == Core.token()
+
+      on_exit(fn ->
+        Application.put_env(:core, :token, prev_token)
+      end)
+
+      tipper_id = 1_223_461_111_336
+      winner_address = :crypto.strong_rand_bytes(21)
+
+      assert :ok = Core.Session.set_seedit_address(tipper_id, winner_address)
+      assert 100_000 = Core.Session.add_rolls(tipper_id, 100_000)
+      assert :ok = Storage.change_pool_size(+10000)
+
+      # TODO use seeds to predetermine the roll outcome
+      Enum.reduce(1..10000, Storage.pool_size(), fn _, prev_pool_size ->
+        case Core.roll(tipper_id) do
+          {:ok, {:win, :large_straight, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
+            assert_receive {:reward, token: "SomeToken", address: ^winner_address, amount: 200}
+            pool_size = Storage.pool_size()
+            assert pool_size == prev_pool_size - 200
+            pool_size
+
+          {:ok, {:win, :four_of_kind, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
+            assert_receive {:reward, token: "SomeToken", address: ^winner_address, amount: 400}
+            pool_size = Storage.pool_size()
+            assert pool_size == prev_pool_size - 400
+            pool_size
+
+          {:ok, {:win, :pool, _dice}, "tx87q32oiualfjbasdlkjfbasm"} ->
+            assert_receive {:reward, token: "SomeToken", address: ^winner_address, amount: amount}
             assert_in_delta amount, 0.8 * prev_pool_size, 10
             Storage.change_pool_size(+10000)
             Storage.pool_size()
@@ -232,32 +444,73 @@ defmodule CoreTest do
     end
   end
 
-  test "pool_size_cap" do
-    assert 1_000_000 == Core.pool_size_cap()
+  describe "pool_size_cap" do
+    test "with TRX" do
+      assert 1_000_000 == Core.pool_size_cap()
 
-    :ok = Application.put_env(:core, :pool_size_cap, 1000)
+      :ok = Application.put_env(:core, :pool_size_cap, 1000)
 
-    assert 1000 == Core.pool_size_cap()
-    assert 0 == Core.pool_size()
+      assert 1000 == Core.pool_size_cap()
+      assert 0 == Core.pool_size()
 
-    tipper_id = 1_223_432_435
+      tipper_id = 1_223_432_435
 
-    txid = Base.encode16("trx100", case: :lower)
-    assert {:ok, _roll_count, 100} = Core.process_tip(tipper_id, txid)
-    assert 100 == Core.pool_size()
+      txid = Base.encode16("TRX:100", case: :lower)
+      assert {:ok, _roll_count, 100} = Core.process_tip(tipper_id, txid)
+      assert 100 == Core.pool_size()
 
-    txid = Base.encode16("trx850", case: :lower)
-    assert {:ok, _roll_count, 950} = Core.process_tip(tipper_id, txid)
-    assert 950 == Core.pool_size()
+      txid = Base.encode16("TRX:850", case: :lower)
+      assert {:ok, _roll_count, 950} = Core.process_tip(tipper_id, txid)
+      assert 950 == Core.pool_size()
 
-    txid = Base.encode16("trx70", case: :lower)
-    assert {:ok, _roll_count, 1000} = Core.process_tip(tipper_id, txid)
-    assert 1000 == Core.pool_size()
+      txid = Base.encode16("TRX:70", case: :lower)
+      assert {:ok, _roll_count, 1000} = Core.process_tip(tipper_id, txid)
+      assert 1000 == Core.pool_size()
 
-    txid = Base.encode16("trx700", case: :lower)
-    assert {:ok, _roll_count, 1000} = Core.process_tip(tipper_id, txid)
-    assert 1000 == Core.pool_size()
+      txid = Base.encode16("TRX:700", case: :lower)
+      assert {:ok, _roll_count, 1000} = Core.process_tip(tipper_id, txid)
+      assert 1000 == Core.pool_size()
 
-    :ok = Application.put_env(:core, :pool_size_cap, 1_000_000)
+      :ok = Application.put_env(:core, :pool_size_cap, 1_000_000)
+    end
+
+    test "with SomeToken" do
+      prev_token = Core.token()
+
+      :ok = Application.put_env(:core, :token, "SomeToken")
+
+      assert "SomeToken" == Core.token()
+
+      on_exit(fn ->
+        Application.put_env(:core, :token, prev_token)
+      end)
+
+      assert 1_000_000 == Core.pool_size_cap()
+
+      :ok = Application.put_env(:core, :pool_size_cap, 1000)
+
+      assert 1000 == Core.pool_size_cap()
+      assert 0 == Core.pool_size()
+
+      tipper_id = 1_223_432_435_654
+
+      txid = Base.encode16("SomeToken:100", case: :lower)
+      assert {:ok, _roll_count, 100} = Core.process_tip(tipper_id, txid)
+      assert 100 == Core.pool_size()
+
+      txid = Base.encode16("SomeToken:850", case: :lower)
+      assert {:ok, _roll_count, 950} = Core.process_tip(tipper_id, txid)
+      assert 950 == Core.pool_size()
+
+      txid = Base.encode16("SomeToken:70", case: :lower)
+      assert {:ok, _roll_count, 1000} = Core.process_tip(tipper_id, txid)
+      assert 1000 == Core.pool_size()
+
+      txid = Base.encode16("SomeToken:700", case: :lower)
+      assert {:ok, _roll_count, 1000} = Core.process_tip(tipper_id, txid)
+      assert 1000 == Core.pool_size()
+
+      :ok = Application.put_env(:core, :pool_size_cap, 1_000_000)
+    end
   end
 end

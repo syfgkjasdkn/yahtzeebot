@@ -78,7 +78,8 @@ defmodule Core.Tron do
   end
 
   @doc false
-  @spec transaction_contract(Tron.TransferContract.t()) :: Tron.Transaction.Contract.t()
+  @spec transaction_contract(Tron.TransferContract.t() | Tron.TransferAssetContract.t()) ::
+          Tron.Transaction.Contract.t()
   def transaction_contract(%Tron.TransferContract{} = contract) do
     Tron.Transaction.Contract.new(
       type: 1,
@@ -90,8 +91,35 @@ defmodule Core.Tron do
     )
   end
 
-  def transfer_transaction(<<from::21-bytes>>, <<to::21-bytes>>, amount) do
-    transfer_contract = transfer_contract(from, to, amount)
+  def transaction_contract(%Tron.TransferAssetContract{} = contract) do
+    Tron.Transaction.Contract.new(
+      type: 1,
+      parameter:
+        Google.Protobuf.Any.new(
+          value: Tron.TransferAssetContract.encode(contract),
+          type_url: "type.googleapis.com/protocol.TransferAssetContract"
+        )
+    )
+  end
+
+  @doc false
+  @spec transfer_asset_contract(String.t(), binary, binary, pos_integer) ::
+          Tron.TransferAssetContract.t()
+  def transfer_asset_contract(asset_name, <<from::21-bytes>>, <<to::21-bytes>>, amount) do
+    Tron.TransferAssetContract.new(
+      owner_address: from,
+      to_address: to,
+      amount: amount,
+      asset_name: asset_name
+    )
+  end
+
+  def transfer_transaction(token, <<from::21-bytes>>, <<to::21-bytes>>, amount) do
+    transfer_contract =
+      case token do
+        "TRX" -> transfer_contract(from, to, amount)
+        token -> transfer_asset_contract(token, from, to, amount)
+      end
 
     transfer_contract
     |> transaction_contract()
@@ -102,13 +130,14 @@ defmodule Core.Tron do
     DateTime.to_unix(DateTime.utc_now(), :millisecond)
   end
 
-  @spec reward(Tron.address(), pos_integer) :: {:ok, txid_base16 :: String.t()}
-  def reward(<<to_address::21-bytes>>, amount) do
-    @adapter.reward(to_address, amount)
+  @spec reward(String.t(), Tron.address(), pos_integer) :: {:ok, txid_base16 :: String.t()}
+  def reward(token, <<to_address::21-bytes>>, amount) do
+    @adapter.reward(token, to_address, amount)
   end
 
-  @spec transfer(pos_integer, Tron.address(), Tron.privkey()) :: {:ok, txid_base16 :: String.t()}
-  def transfer(amount, <<to_address::21-bytes>>, <<privkey::32-bytes>>) do
+  @spec transfer(String.t(), pos_integer, Tron.address(), Tron.privkey()) ::
+          {:ok, txid_base16 :: String.t()}
+  def transfer(token, amount, <<to_address::21-bytes>>, <<privkey::32-bytes>>) do
     %Tron.BlockExtention{
       block_header: %Tron.BlockHeader{
         raw_data: %Tron.BlockHeader.Raw{} = block_header_raw
@@ -118,7 +147,7 @@ defmodule Core.Tron do
     from_address = Tron.address(privkey)
 
     signed_transaction =
-      transfer_transaction(from_address, to_address, amount)
+      transfer_transaction(token, from_address, to_address, amount)
       |> Tron.set_reference(block_header_raw)
       |> Tron.sign_transaction(privkey)
 

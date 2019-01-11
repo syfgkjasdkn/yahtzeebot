@@ -83,7 +83,7 @@ defmodule TGBot do
     credit = Core.Session.credit(from_id)
 
     @adapter.send_message(chat_id, """
-    @#{username} your credit is #{credit} TRX
+    @#{username} your credit is #{credit} #{Core.token()}
     """)
   end
 
@@ -115,12 +115,12 @@ defmodule TGBot do
         """)
 
       {:error, :no_rolls} ->
-        {rolls, trx} = Core.rolls_to_trx_ratio()
+        {rolls, tokens} = Core.rolls_to_token_ratio()
 
         @adapter.send_message(chat_id, """
         @#{username} you don't have any rolls left.
 
-        Please /tip #{trx} the bot to get #{rolls} rolls.
+        Please /tip #{tip_message(tokens)} the bot to get #{rolls} rolls.
         """)
 
       {:error, :give_up} ->
@@ -132,7 +132,7 @@ defmodule TGBot do
 
   defp handle_public_text("/pool" <> _maybe_bot_name, %{"chat" => %{"id" => chat_id}}) do
     @adapter.send_message(chat_id, """
-    Current pool size is #{Core.pool_size()} TRX
+    Current pool size is #{Core.pool_size()} #{Core.token()}
     """)
   end
 
@@ -178,6 +178,13 @@ defmodule TGBot do
     end
   end
 
+  defp tip_message(amount) do
+    case Core.token() do
+      "TRX" -> "#{amount}"
+      token -> "#{amount} #{token}"
+    end
+  end
+
   @spec token :: String.t()
   def token do
     Application.get_env(:nadia, :token) || raise("need nadia.token")
@@ -197,8 +204,8 @@ defmodule TGBot do
   end
 
   defp render_reward(:extra_roll), do: "extra roll"
-  defp render_reward(:large_straight), do: "#{Core.reward_for_large_straight()} TRX"
-  defp render_reward(:four_of_kind), do: "#{Core.reward_for_four_of_kind()} TRX"
+  defp render_reward(:large_straight), do: "#{Core.reward_for_large_straight()} #{Core.token()}"
+  defp render_reward(:four_of_kind), do: "#{Core.reward_for_four_of_kind()} #{Core.token()}"
   defp render_reward(:pool), do: "the pool"
 
   @doc false

@@ -11,9 +11,16 @@ defmodule Core.Tron.TronAdapter do
   end
 
   @impl true
-  def reward(to_address, amount) when is_integer(amount) do
+  def reward(token, to_address, amount) when is_integer(amount) do
+    amount =
+      case token do
+        "TRX" -> amount * 1_000_000
+        _other -> amount
+      end
+
     Core.Tron.transfer(
-      amount * 1_000_000,
+      token,
+      amount,
       to_address,
       Application.get_env(:core, :privkey)
     )

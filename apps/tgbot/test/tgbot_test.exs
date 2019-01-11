@@ -102,18 +102,44 @@ defmodule TGBotTest do
     end
   end
 
-  test "/pool" do
-    telegram_id = 101_234
-    assert :ok = Storage.change_pool_size(+10000)
+  describe "/pool" do
+    test "with TRX" do
+      telegram_id = 101_234
+      assert :ok = Storage.change_pool_size(+10000)
 
-    send_public_message(telegram_id, "/pool")
+      send_public_message(telegram_id, "/pool")
 
-    assert_receive {:message,
-                    telegram_id: ^telegram_id,
-                    text: """
-                    Current pool size is 10000 TRX
-                    """,
-                    opts: []}
+      assert_receive {:message,
+                      telegram_id: ^telegram_id,
+                      text: """
+                      Current pool size is 10000 TRX
+                      """,
+                      opts: []}
+    end
+
+    test "with tokens" do
+      prev_token = Core.token()
+
+      :ok = Application.put_env(:core, :token, "SomeToken")
+
+      assert "SomeToken" == Core.token()
+
+      on_exit(fn ->
+        Application.put_env(:core, :token, prev_token)
+      end)
+
+      telegram_id = 101_234_199
+      assert :ok = Storage.change_pool_size(+10000)
+
+      send_public_message(telegram_id, "/pool")
+
+      assert_receive {:message,
+                      telegram_id: ^telegram_id,
+                      text: """
+                      Current pool size is 10000 SomeToken
+                      """,
+                      opts: []}
+    end
   end
 
   test "/rolls_left" do
@@ -140,29 +166,66 @@ defmodule TGBotTest do
                     opts: []}
   end
 
-  test "/credit" do
-    telegram_id = 1_232_34523
+  describe "/credit" do
+    test "with trx" do
+      telegram_id = 1_232_34523
 
-    send_public_message(telegram_id, "/credit")
+      send_public_message(telegram_id, "/credit")
 
-    assert_receive {:message,
-                    telegram_id: ^telegram_id,
-                    text: """
-                    @durov your credit is 0 TRX
-                    """,
-                    opts: []}
+      assert_receive {:message,
+                      telegram_id: ^telegram_id,
+                      text: """
+                      @durov your credit is 0 TRX
+                      """,
+                      opts: []}
 
-    # TODO
-    assert :ok == Storage.change_credit(telegram_id, +70)
+      # TODO
+      assert :ok == Storage.change_credit(telegram_id, +70)
 
-    send_public_message(telegram_id, "/credit")
+      send_public_message(telegram_id, "/credit")
 
-    assert_receive {:message,
-                    telegram_id: ^telegram_id,
-                    text: """
-                    @durov your credit is 70 TRX
-                    """,
-                    opts: []}
+      assert_receive {:message,
+                      telegram_id: ^telegram_id,
+                      text: """
+                      @durov your credit is 70 TRX
+                      """,
+                      opts: []}
+    end
+
+    test "with tokens" do
+      prev_token = Core.token()
+
+      :ok = Application.put_env(:core, :token, "SomeToken")
+
+      assert "SomeToken" == Core.token()
+
+      on_exit(fn ->
+        Application.put_env(:core, :token, prev_token)
+      end)
+
+      telegram_id = 1_232_345_242_111_223
+
+      send_public_message(telegram_id, "/credit")
+
+      assert_receive {:message,
+                      telegram_id: ^telegram_id,
+                      text: """
+                      @durov your credit is 0 SomeToken
+                      """,
+                      opts: []}
+
+      # TODO
+      assert :ok == Storage.change_credit(telegram_id, +70)
+
+      send_public_message(telegram_id, "/credit")
+
+      assert_receive {:message,
+                      telegram_id: ^telegram_id,
+                      text: """
+                      @durov your credit is 70 SomeToken
+                      """,
+                      opts: []}
+    end
   end
 
   describe "/roll" do
@@ -206,6 +269,31 @@ defmodule TGBotTest do
                       @durov you don't have any rolls left.
 
                       Please /tip 100 the bot to get 3 rolls.
+                      """,
+                      opts: []}
+    end
+
+    test "when don't have rolls (with tokens)" do
+      prev_token = Core.token()
+
+      :ok = Application.put_env(:core, :token, "SomeToken")
+
+      assert "SomeToken" == Core.token()
+
+      on_exit(fn ->
+        Application.put_env(:core, :token, prev_token)
+      end)
+
+      telegram_id = 10_112_763_845_976_352
+
+      send_public_message(telegram_id, "/roll")
+
+      assert_receive {:message,
+                      telegram_id: ^telegram_id,
+                      text: """
+                      @durov you don't have any rolls left.
+
+                      Please /tip 100 SomeToken the bot to get 3 rolls.
                       """,
                       opts: []}
     end

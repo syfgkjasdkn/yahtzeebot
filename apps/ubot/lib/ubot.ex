@@ -171,29 +171,36 @@ defmodule UBot do
         TGBot.adapter().send_message(chat_id, """
         @#{tipper_username} you tipped an invalid amount.
 
-        Pool size: #{pool_size} TRX
+        Pool size: #{pool_size} #{Core.token()}
         """)
 
       {:ok, rolls_count, pool_size} ->
         TGBot.adapter().send_message(chat_id, """
         @#{tipper_username} now has #{rolls_count} roll(s)
 
-        Pool size: #{pool_size} TRX
+        Pool size: #{pool_size} #{Core.token()}
         """)
 
-      {:error, :invalid_contract} ->
-        {rolls, trx} = Core.rolls_to_trx_ratio()
+      {:error, reason} when reason in [:invalid_contract, :invalid_token] ->
+        {rolls, tokens} = Core.rolls_to_token_ratio()
 
         TGBot.adapter().send_message(chat_id, """
-        🚨 The bot only accepts #{trx} TRX tips.
+        🚨 The bot only accepts #{tokens} #{Core.token()} tips.
 
-        Try /tip #{trx} to get #{rolls} rolls
+        Try /tip #{tip_message(tokens)} to get #{rolls} rolls
         """)
 
       {:error, :no_transfer} ->
         TGBot.adapter().send_message(chat_id, """
         🚨 Failed to fetch the transfer
         """)
+    end
+  end
+
+  defp tip_message(amount) do
+    case Core.token() do
+      "TRX" -> "#{amount}"
+      token -> "#{amount} #{token}"
     end
   end
 
