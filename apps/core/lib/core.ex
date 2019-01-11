@@ -36,7 +36,7 @@ defmodule Core do
       {:ok, {:win, reward, _dice} = outcome} when reward in [:large_straight, :four_of_kind] ->
         reward_amount = reward_to_token(reward)
 
-        case try_reward(token(), reward_amount, Core.Session.seedit_address(telegram_id)) do
+        case try_reward(token_id(), reward_amount, Core.Session.seedit_address(telegram_id)) do
           {:ok, txid} ->
             :ok = Storage.change_pool_size(-reward_amount)
             {:ok, outcome, txid}
@@ -50,7 +50,7 @@ defmodule Core do
         reward = :erlang.floor(pool_size * winning_player_pct())
         to_owners = :erlang.floor(pool_size * house_pct())
 
-        case try_reward(token(), to_owners, owners_address!()) do
+        case try_reward(token_id(), to_owners, owners_address!()) do
           {:ok, _txid} ->
             :ok = Storage.change_pool_size(-to_owners)
 
@@ -58,7 +58,7 @@ defmodule Core do
             nil
         end
 
-        case try_reward(token(), reward, Core.Session.seedit_address(telegram_id)) do
+        case try_reward(token_id(), reward, Core.Session.seedit_address(telegram_id)) do
           {:ok, txid} ->
             :ok = Storage.change_pool_size(-reward)
             {:ok, outcome, txid}
@@ -198,9 +198,22 @@ defmodule Core do
     :ok
   end
 
-  @spec token :: String.t()
-  def token do
-    Application.get_env(:core, :token, "TRX")
+  @spec token_name :: String.t()
+  def token_name do
+    Application.get_env(:core, :token_name, "TRX")
+  end
+
+  @spec token_id :: String.t()
+  def token_id do
+    Application.get_env(:core, :token_id, "TRX")
+  end
+
+  @spec full_token_name :: String.t()
+  def full_token_name do
+    case token_id() do
+      "TRX" -> "TRX"
+      id -> "#{token_name()} (#{id})"
+    end
   end
 
   @spec ensure_our_address!(Tron.TransferContract.t() | Tron.TransferAssetContract.t()) ::
@@ -216,7 +229,7 @@ defmodule Core do
       ) do
     :ok = Core.Session.set_seedit_address(tipper_id, tipper_address)
 
-    if token() == "TRX" do
+    if token_id() == "TRX" do
       pool_size_change = div(amount, 1_000_000)
       pool_size = Storage.pool_size()
 
@@ -262,7 +275,7 @@ defmodule Core do
       ) do
     :ok = Core.Session.set_seedit_address(tipper_id, tipper_address)
 
-    if token() == asset_name do
+    if token_id() == asset_name do
       pool_size_change = amount
       pool_size = Storage.pool_size()
 

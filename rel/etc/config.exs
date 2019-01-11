@@ -52,7 +52,8 @@ config :core,
   reward_for_large_straight: env!.("REWARD_FOR_LARGE_STRAIGHT", :integer),
   admin_ids: env!.("ADMIN_IDS", {:list, :integer}),
   pool_size_cap: env!.("POOL_SIZE_CAP", :integer),
-  token: env!.("TOKEN", :string)
+  token_id: System.get_env("TOKEN_ID"),
+  token_name: System.get_env("TOKEN_NAME")
 
 config :web,
   port: env!.("WEB_PORT", :integer),

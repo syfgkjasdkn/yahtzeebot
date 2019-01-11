@@ -111,14 +111,17 @@ defmodule UbotTest do
 
   describe "token tip" do
     setup do
-      prev_token = Core.token()
+      prev_token_id = Core.token_id()
+      prev_token_name = Core.token_name()
 
-      :ok = Application.put_env(:core, :token, "SomeToken")
+      :ok = Application.put_env(:core, :token_id, "1234567")
+      :ok = Application.put_env(:core, :token_name, "SomeToken")
 
-      assert "SomeToken" == Core.token()
+      assert "SomeToken (1234567)" == Core.full_token_name()
 
       on_exit(fn ->
-        Application.put_env(:core, :token, prev_token)
+        Application.put_env(:core, :token_id, prev_token_id)
+        Application.put_env(:core, :token_name, prev_token_name)
       end)
     end
 
@@ -126,7 +129,7 @@ defmodule UbotTest do
       tipper_id = 1_234_123_423
       chat_id = -112_341_234_234_532
       tipper_username = "durov"
-      txid = Base.encode16("SomeToken:100", case: :lower)
+      txid = Base.encode16("1234567:100", case: :lower)
 
       UBot._process_tip(tipper_id, tipper_username, chat_id, txid)
 
@@ -135,7 +138,7 @@ defmodule UbotTest do
                       text: """
                       @durov now has 3 roll(s)
 
-                      Pool size: 100 SomeToken
+                      Pool size: 100 SomeToken (1234567)
                       """,
                       opts: []}
 
@@ -149,7 +152,7 @@ defmodule UbotTest do
                       text: """
                       @durov now has 6 roll(s)
 
-                      Pool size: 200 SomeToken
+                      Pool size: 200 SomeToken (1234567)
                       """,
                       opts: []}
 
@@ -162,7 +165,7 @@ defmodule UbotTest do
       chat_id = -11_234_234_234_534
       tipper_username = "durov"
 
-      txid = Base.encode16("SomeToken:70", case: :lower)
+      txid = Base.encode16("1234567:70", case: :lower)
       UBot._process_tip(tipper_id, tipper_username, chat_id, txid)
 
       assert_receive {:message,
@@ -170,7 +173,7 @@ defmodule UbotTest do
                       text: """
                       @durov you tipped an invalid amount.
 
-                      Pool size: 70 SomeToken
+                      Pool size: 70 SomeToken (1234567)
                       """,
                       opts: []}
 
@@ -178,7 +181,7 @@ defmodule UbotTest do
       assert 70 == Core.Session.credit(tipper_id)
       assert 70 == Core.pool_size()
 
-      txid = Base.encode16("SomeToken:35", case: :lower)
+      txid = Base.encode16("1234567:35", case: :lower)
       UBot._process_tip(tipper_id, tipper_username, chat_id, txid)
 
       assert_receive {:message,
@@ -186,7 +189,7 @@ defmodule UbotTest do
                       text: """
                       @durov now has 3 roll(s)
 
-                      Pool size: 105 SomeToken
+                      Pool size: 105 SomeToken (1234567)
                       """,
                       opts: []}
 
@@ -206,7 +209,7 @@ defmodule UbotTest do
       assert_receive {:message,
                       telegram_id: ^chat_id,
                       text: """
-                      🚨 The bot only accepts 100 SomeToken tips.
+                      🚨 The bot only accepts 100 SomeToken (1234567) tips.
 
                       Try /tip 100 SomeToken to get 3 rolls
                       """,
@@ -222,7 +225,7 @@ defmodule UbotTest do
       assert_receive {:message,
                       telegram_id: ^chat_id,
                       text: """
-                      🚨 The bot only accepts 100 SomeToken tips.
+                      🚨 The bot only accepts 100 SomeToken (1234567) tips.
 
                       Try /tip 100 SomeToken to get 3 rolls
                       """,

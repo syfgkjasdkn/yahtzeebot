@@ -83,7 +83,7 @@ defmodule TGBot do
     credit = Core.Session.credit(from_id)
 
     @adapter.send_message(chat_id, """
-    @#{username} your credit is #{credit} #{Core.token()}
+    @#{username} your credit is #{credit} #{Core.full_token_name()}
     """)
   end
 
@@ -132,7 +132,7 @@ defmodule TGBot do
 
   defp handle_public_text("/pool" <> _maybe_bot_name, %{"chat" => %{"id" => chat_id}}) do
     @adapter.send_message(chat_id, """
-    Current pool size is #{Core.pool_size()} #{Core.token()}
+    Current pool size is #{Core.pool_size()} #{Core.full_token_name()}
     """)
   end
 
@@ -179,9 +179,9 @@ defmodule TGBot do
   end
 
   defp tip_message(amount) do
-    case Core.token() do
+    case Core.token_name() do
       "TRX" -> "#{amount}"
-      token -> "#{amount} #{token}"
+      token_name -> "#{amount} #{token_name}"
     end
   end
 
@@ -204,8 +204,13 @@ defmodule TGBot do
   end
 
   defp render_reward(:extra_roll), do: "extra roll"
-  defp render_reward(:large_straight), do: "#{Core.reward_for_large_straight()} #{Core.token()}"
-  defp render_reward(:four_of_kind), do: "#{Core.reward_for_four_of_kind()} #{Core.token()}"
+
+  defp render_reward(:large_straight),
+    do: "#{Core.reward_for_large_straight()} #{Core.full_token_name()}"
+
+  defp render_reward(:four_of_kind),
+    do: "#{Core.reward_for_four_of_kind()} #{Core.full_token_name()}"
+
   defp render_reward(:pool), do: "the pool"
 
   @doc false
