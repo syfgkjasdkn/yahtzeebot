@@ -171,14 +171,14 @@ defmodule UBot do
         TGBot.adapter().send_message(chat_id, """
         @#{tipper_username} you tipped an invalid amount.
 
-        Pool size: #{pool_size} TRX
+        Pool size: #{pool_size} #{Core.token()}
         """)
 
       {:ok, rolls_count, pool_size} ->
         TGBot.adapter().send_message(chat_id, """
         @#{tipper_username} now has #{rolls_count} roll(s)
 
-        Pool size: #{pool_size} TRX
+        Pool size: #{pool_size} #{Core.token()}
         """)
 
       {:error, reason} when reason in [:invalid_contract, :invalid_token] ->
