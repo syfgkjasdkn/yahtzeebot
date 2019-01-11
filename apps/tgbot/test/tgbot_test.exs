@@ -118,15 +118,7 @@ defmodule TGBotTest do
     end
 
     test "with tokens" do
-      prev_token = Core.token()
-
-      :ok = Application.put_env(:core, :token, "SomeToken")
-
-      assert "SomeToken" == Core.token()
-
-      on_exit(fn ->
-        Application.put_env(:core, :token, prev_token)
-      end)
+      setup_token()
 
       telegram_id = 101_234_199
       assert :ok = Storage.change_pool_size(+10000)
@@ -136,7 +128,7 @@ defmodule TGBotTest do
       assert_receive {:message,
                       telegram_id: ^telegram_id,
                       text: """
-                      Current pool size is 10000 SomeToken
+                      Current pool size is 10000 SomeToken (1234567)
                       """,
                       opts: []}
     end
@@ -193,15 +185,7 @@ defmodule TGBotTest do
     end
 
     test "with tokens" do
-      prev_token = Core.token()
-
-      :ok = Application.put_env(:core, :token, "SomeToken")
-
-      assert "SomeToken" == Core.token()
-
-      on_exit(fn ->
-        Application.put_env(:core, :token, prev_token)
-      end)
+      setup_token()
 
       telegram_id = 1_232_345_242_111_223
 
@@ -210,7 +194,7 @@ defmodule TGBotTest do
       assert_receive {:message,
                       telegram_id: ^telegram_id,
                       text: """
-                      @durov your credit is 0 SomeToken
+                      @durov your credit is 0 SomeToken (1234567)
                       """,
                       opts: []}
 
@@ -222,7 +206,7 @@ defmodule TGBotTest do
       assert_receive {:message,
                       telegram_id: ^telegram_id,
                       text: """
-                      @durov your credit is 70 SomeToken
+                      @durov your credit is 70 SomeToken (1234567)
                       """,
                       opts: []}
     end
@@ -274,15 +258,7 @@ defmodule TGBotTest do
     end
 
     test "when don't have rolls (with tokens)" do
-      prev_token = Core.token()
-
-      :ok = Application.put_env(:core, :token, "SomeToken")
-
-      assert "SomeToken" == Core.token()
-
-      on_exit(fn ->
-        Application.put_env(:core, :token, prev_token)
-      end)
+      setup_token()
 
       telegram_id = 10_112_763_845_976_352
 
@@ -363,5 +339,20 @@ defmodule TGBotTest do
         "from" => %{"id" => telegram_id}
       }
     })
+  end
+
+  defp setup_token do
+    prev_token_id = Core.token_id()
+    prev_token_name = Core.token_name()
+
+    :ok = Application.put_env(:core, :token_id, "1234567")
+    :ok = Application.put_env(:core, :token_name, "SomeToken")
+
+    assert "SomeToken (1234567)" == Core.full_token_name()
+
+    on_exit(fn ->
+      Application.put_env(:core, :token_id, prev_token_id)
+      Application.put_env(:core, :token_name, prev_token_name)
+    end)
   end
 end
