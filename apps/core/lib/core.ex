@@ -200,12 +200,12 @@ defmodule Core do
 
   @spec token_name :: String.t()
   def token_name do
-    Application.get_env(:core, :token_name, "TRX")
+    Application.get_env(:core, :token_name) || "TRX"
   end
 
   @spec token_id :: String.t()
   def token_id do
-    Application.get_env(:core, :token_id, "TRX")
+    Application.get_env(:core, :token_id) || "TRX"
   end
 
   @spec full_token_name :: String.t()
