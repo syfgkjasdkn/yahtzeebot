@@ -17,8 +17,8 @@ Environment=WINNING_PLAYER_PCT=0.8
 Environment=HOUSE_PCT=0.1
 # remove the following two if you want to use TRX
 # or set both to TRX
-Envitonment=TOKEN_ID=10002523
-Envitonment=TOKEN_NAME=SomeToken
+Environment=TOKEN_ID=10002523
+Environment=TOKEN_NAME=SomeToken
 Environment=ROLLS_TO_TOKEN_RATIO="3/100"
 Environment=REWARD_FOR_FOUR_OF_KIND=400
 Environment=REWARD_FOR_LARGE_STRAIGHT=200
