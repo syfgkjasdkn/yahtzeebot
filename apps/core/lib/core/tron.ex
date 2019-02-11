@@ -93,7 +93,7 @@ defmodule Core.Tron do
 
   def transaction_contract(%Tron.TransferAssetContract{} = contract) do
     Tron.Transaction.Contract.new(
-      type: 1,
+      type: 2,
       parameter:
         Google.Protobuf.Any.new(
           value: Tron.TransferAssetContract.encode(contract),
