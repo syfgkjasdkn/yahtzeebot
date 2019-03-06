@@ -68,14 +68,14 @@ defmodule Storage do
     end
   end
 
-  @spec insert_user(pos_integer) :: :ok | other :: any
-  @spec insert_user(module | pid, pos_integer) :: :ok | other :: any
+  @spec insert_user(pos_integer) :: :ok | (other :: any)
+  @spec insert_user(module | pid, pos_integer) :: :ok | (other :: any)
   def insert_user(pid \\ __MODULE__, telegram_id) do
     GenServer.call(pid, {:insert_user, telegram_id})
   end
 
-  @spec set_seedit_address(pos_integer, <<_::168>>) :: :ok | other :: any
-  @spec set_seedit_address(module | pid, pos_integer, <<_::168>>) :: :ok | other :: any
+  @spec set_seedit_address(pos_integer, <<_::168>>) :: :ok | (other :: any)
+  @spec set_seedit_address(module | pid, pos_integer, <<_::168>>) :: :ok | (other :: any)
   def set_seedit_address(pid \\ __MODULE__, telegram_id, <<address::21-bytes>>) do
     GenServer.call(pid, {:set_seedit_address, telegram_id, address})
   end
@@ -95,20 +95,20 @@ defmodule Storage do
     end)
   end
 
-  @spec change_rolls_count(pos_integer, integer) :: :ok | other :: any
-  @spec change_rolls_count(module | pid, pos_integer, integer) :: :ok | other :: any
+  @spec change_rolls_count(pos_integer, integer) :: :ok | (other :: any)
+  @spec change_rolls_count(module | pid, pos_integer, integer) :: :ok | (other :: any)
   def change_rolls_count(pid \\ __MODULE__, telegram_id, count) do
     GenServer.call(pid, {:change_rolls_count, telegram_id, count})
   end
 
-  @spec change_credit(pos_integer, integer) :: :ok | other :: any
-  @spec change_credit(module | pid, pos_integer, integer) :: :ok | other :: any
+  @spec change_credit(pos_integer, integer) :: :ok | (other :: any)
+  @spec change_credit(module | pid, pos_integer, integer) :: :ok | (other :: any)
   def change_credit(pid \\ __MODULE__, telegram_id, credit_change) do
     GenServer.call(pid, {:change_credit, telegram_id, credit_change})
   end
 
-  @spec set_credit(pos_integer, non_neg_integer) :: :ok | other :: any
-  @spec set_credit(module | pid, pos_integer, non_neg_integer) :: :ok | other :: any
+  @spec set_credit(pos_integer, non_neg_integer) :: :ok | (other :: any)
+  @spec set_credit(module | pid, pos_integer, non_neg_integer) :: :ok | (other :: any)
   def set_credit(pid \\ __MODULE__, telegram_id, credit) do
     GenServer.call(pid, {:set_credit, telegram_id, credit})
   end
@@ -126,8 +126,8 @@ defmodule Storage do
     GenServer.call(pid, {:reset_pool_size, new_pool_size})
   end
 
-  @spec change_pool_size(integer) :: :ok
-  @spec change_pool_size(module | pid, integer) :: :ok
+  @spec change_pool_size(integer) :: :ok | {:error, :overdraft}
+  @spec change_pool_size(module | pid, integer) :: :ok | {:error, :overdraft}
   def change_pool_size(pid \\ __MODULE__, change) do
     GenServer.call(pid, {:change_pool_size, change})
   end
@@ -155,14 +155,14 @@ defmodule Storage do
     |> Enum.map(fn {room_id} -> room_id end)
   end
 
-  @spec insert_initialized_room(String.t(), integer) :: :ok | other :: any
-  @spec insert_initialized_room(module | pid, String.t(), integer) :: :ok | other :: any
+  @spec insert_initialized_room(String.t(), integer) :: :ok | (other :: any)
+  @spec insert_initialized_room(module | pid, String.t(), integer) :: :ok | (other :: any)
   def insert_initialized_room(pid \\ __MODULE__, phone_number, room_id) do
     GenServer.call(pid, {:insert_initialized_room, phone_number, room_id})
   end
 
-  @spec delete_initialized_room(String.t(), integer) :: :ok | other :: any
-  @spec delete_initialized_room(module | pid, String.t(), integer) :: :ok | other :: any
+  @spec delete_initialized_room(String.t(), integer) :: :ok | (other :: any)
+  @spec delete_initialized_room(module | pid, String.t(), integer) :: :ok | (other :: any)
   def delete_initialized_room(pid \\ __MODULE__, phone_number, room_id) do
     GenServer.call(pid, {:delete_initialized_room, phone_number, room_id})
   end
