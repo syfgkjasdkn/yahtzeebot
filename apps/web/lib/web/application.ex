@@ -38,7 +38,12 @@ defmodule Web.Application do
 
   @doc false
   def set_webhook(public_ip) do
-    port = :ranch.get_port(Web.Router.HTTPS) || raise("failed to get https port")
+    port =
+      case :ranch.get_port(Web.Router.HTTPS) do
+        :undefined -> raise("failed to get https port")
+        port -> port
+      end
+
     url = "https://#{public_ip}:#{port}/tgbot"
 
     :ok =
@@ -51,13 +56,13 @@ defmodule Web.Application do
   end
 
   @doc false
-  @spec openssl(binary) :: binary
+  @spec openssl(binary) :: charlist
   def openssl(args) do
     :os.cmd('openssl #{args}')
   end
 
   @doc false
-  @spec generate_certs(String.t()) :: {:ok, binary} | {:error, binary}
+  @spec generate_certs(String.t()) :: charlist
   def generate_certs(ip_address) do
     priv_dir = Application.app_dir(:web, "/priv")
 
