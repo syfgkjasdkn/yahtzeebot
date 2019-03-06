@@ -183,10 +183,18 @@ defmodule Storage do
   def handle_call(message, from, state)
 
   def handle_call({:change_pool_size, change}, _from, state) do
-    sql = "UPDATE kv SET value = value + ? WHERE key = 'pool_size'"
+    sql = "SELECT value FROM kv WHERE key = 'pool_size'"
     {:ok, statement, state} = prepared_statement(sql, state)
-    :ok = :esqlite3.bind(statement, [change])
-    {:reply, run(statement), state}
+    [{pool_size}] = :esqlite3.fetchall(statement)
+
+    if pool_size + change >= 0 do
+      sql = "UPDATE kv SET value = value + ? WHERE key = 'pool_size'"
+      {:ok, statement, state} = prepared_statement(sql, state)
+      :ok = :esqlite3.bind(statement, [change])
+      {:reply, run(statement), state}
+    else
+      {:reply, {:error, :overdraft}, state}
+    end
   end
 
   def handle_call(:pool_size, _from, state) do
