@@ -155,6 +155,9 @@ defmodule StorageTest do
 
     assert :ok = Storage.reset_pool_size(pid, 15)
     assert 15 = Storage.pool_size(pid)
+
+    assert {:error, :overdraft} = Storage.change_pool_size(pid, -20)
+    assert 15 = Storage.pool_size(pid)
   end
 
   test "roll pic", %{pid: pid} do

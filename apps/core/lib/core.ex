@@ -33,38 +33,47 @@ defmodule Core do
           | {:error, :no_rolls | :give_up | any}
   def roll(telegram_id) do
     case Core.Session.roll(telegram_id) do
-      {:ok, {:win, reward, _dice} = outcome} when reward in [:large_straight, :four_of_kind] ->
+      {:ok, {:win, reward, dice} = outcome} when reward in [:large_straight, :four_of_kind] ->
         reward_amount = reward_to_token(reward)
 
-        case try_reward(token_id(), reward_amount, Core.Session.seedit_address(telegram_id)) do
-          {:ok, txid} ->
-            :ok = Storage.change_pool_size(-reward_amount)
-            {:ok, outcome, txid}
+        if pool_size() >= reward_amount do
+          case try_reward(token_id(), reward_amount, Core.Session.seedit_address(telegram_id)) do
+            {:ok, txid} ->
+              :ok = Storage.change_pool_size(-reward_amount)
+              {:ok, outcome, txid}
 
-          {:error, _reason} = failure ->
-            failure
+            {:error, _reason} = failure ->
+              failure
+          end
+        else
+          {:ok, {:lose, dice}}
         end
 
-      {:ok, {:win, :pool, _dice} = outcome} ->
+      {:ok, {:win, :pool, dice} = outcome} ->
         pool_size = pool_size()
-        reward = :erlang.floor(pool_size * winning_player_pct())
-        to_owners = :erlang.floor(pool_size * house_pct())
 
-        case try_reward(token_id(), to_owners, owners_address!()) do
-          {:ok, _txid} ->
-            :ok = Storage.change_pool_size(-to_owners)
+        if pool_size > 0 do
+          reward = :erlang.floor(pool_size * winning_player_pct())
+          to_owners = :erlang.floor(pool_size * house_pct())
 
-          _ ->
-            nil
-        end
+          case try_reward(token_id(), to_owners, owners_address!()) do
+            {:ok, _txid} ->
+              :ok = Storage.change_pool_size(-to_owners)
 
-        case try_reward(token_id(), reward, Core.Session.seedit_address(telegram_id)) do
-          {:ok, txid} ->
-            :ok = Storage.change_pool_size(-reward)
-            {:ok, outcome, txid}
+            _ ->
+              nil
+          end
 
-          {:error, _reason} = failure ->
-            failure
+          case try_reward(token_id(), reward, Core.Session.seedit_address(telegram_id)) do
+            {:ok, txid} ->
+              :ok = Storage.change_pool_size(-reward)
+              {:ok, outcome, txid}
+
+            {:error, _reason} = failure ->
+              failure
+          end
+        else
+          {:ok, {:lose, dice}}
         end
 
       {:ok, _outcome} = no_token_win ->
